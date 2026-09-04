@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1a1a1a" />
+    <title>KeysBank</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1a1a1a;
+        color: #fff;
+        font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      img {
+        width: 180px;
+        height: auto;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        letter-spacing: 0.08em;
+        color: #b69955;
+      }
+      p {
+        margin: 0;
+        max-width: 20rem;
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.75);
+      }
+      button {
+        margin-top: 0.5rem;
+        border: 0;
+        border-radius: 0.75rem;
+        background: #b69955;
+        color: #fff;
+        font: 600 1rem/1.2 system-ui, sans-serif;
+        padding: 0.8rem 1.4rem;
+      }
+      .spin {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid rgb(182 153 85 / 0.25);
+        border-top-color: #b69955;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img src="/logo.png" alt="KeysBank" width="180" height="68" />
+      <h1>KeysBank</h1>
+      <div class="spin" aria-hidden="true"></div>
+      <p id="msg">Pas de connexion. Réessayez quand le réseau reviendra.</p>
+      <button id="retry" type="button">Réessayer</button>
+    </div>
+    <script>
+      (function () {
+        var lang = "fr";
+        try {
+          lang = (localStorage.getItem("kb_app_locale") || navigator.language || "fr").slice(0, 2);
+        } catch (e) {
+          lang = (navigator.language || "fr").slice(0, 2);
+        }
+        var copy = {
+          fr: {
+            msg: "Pas de connexion. L'application est disponible hors ligne, les données live nécessitent le réseau.",
+            retry: "Réessayer",
+          },
+          en: {
+            msg: "You're offline. The app shell is cached; live data needs a connection.",
+            retry: "Retry",
+          },
+          ru: {
+            msg: "Нет сети. Оболочка приложения сохранена на устройстве, живые данные нужны из интернета.",
+            retry: "Повторить",
+          },
+        };
+        var t = copy[lang] || copy.fr;
+        document.getElementById("msg").textContent = t.msg;
+        document.getElementById("retry").textContent = t.retry;
+
+        function reload() {
+          location.reload();
+        }
+        document.getElementById("retry").addEventListener("click", reload);
+        window.addEventListener("online", reload);
+      })();
+    </script>
+  </body>
+</html>

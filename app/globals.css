@@ -1,0 +1,224 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@theme inline {
+  --color-brand-gold: #b69955;
+  --color-brand-gold-dark: #997e3e;
+  --color-brand-text: #141414;
+  --color-brand-text-muted: #686868;
+  --color-brand-border: #ededed;
+  --color-brand-cream: #f9f9f9;
+  --color-brand-header: #1a1a1a;
+  --color-brand-page-bg: #d1b07a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), "Times New Roman", Times, serif;
+}
+
+:root {
+  color-scheme: light only;
+  --accent: #b69955;
+  --accent-foreground: #ffffff;
+  --background: #d1b07a;
+  --foreground: #141414;
+  --tg-theme-bg-color: #d1b07a;
+  --tg-theme-text-color: #141414;
+  --tg-theme-hint-color: #686868;
+  --tg-theme-link-color: #b69955;
+  --tg-theme-button-color: #b69955;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f9f9f9;
+  --tg-theme-header-bg-color: #1a1a1a;
+}
+
+html {
+  color-scheme: light only !important;
+  background-color: #1a1a1a !important;
+  color: #141414 !important;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  color-scheme: light only !important;
+  background-color: #1a1a1a !important;
+  color: #141414 !important;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  caret-color: #b69955;
+  overscroll-behavior: none;
+}
+
+html.app-ready,
+html.app-ready body {
+  background-color: #d1b07a !important;
+  color: #141414 !important;
+}
+
+::selection {
+  background: #b69955;
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background: #b69955;
+  color: #ffffff;
+}
+
+a {
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
+
+img,
+svg,
+video,
+canvas {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+.kb-logo {
+  display: block;
+  max-width: 100%;
+  background: transparent;
+}
+
+input,
+textarea,
+select,
+button {
+  color-scheme: light only;
+}
+
+input,
+textarea,
+select {
+  background-color: #ffffff;
+  color: #141414;
+  caret-color: #b69955;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #686868 !important;
+  -webkit-text-fill-color: #686868 !important;
+  opacity: 1 !important;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #141414 !important;
+  caret-color: #b69955;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+}
+
+.kb-app-bg {
+  background: linear-gradient(180deg, #d9bb84 0%, #d1b07a 60%, #c6a468 100%);
+  min-height: 100dvh;
+  height: 100dvh;
+  height: var(--tg-viewport-stable-height, 100dvh);
+  max-height: 100dvh;
+  max-height: var(--tg-viewport-stable-height, 100dvh);
+  color: #141414;
+}
+
+.kb-bottom-nav-wrap {
+  z-index: 30;
+  padding-top: 0.35rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: #d1b07a;
+}
+
+.kb-route-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: #d1b07a;
+  color: #141414;
+  pointer-events: auto;
+}
+
+.kb-route-loading__logo {
+  width: 180px;
+  height: auto;
+}
+
+.kb-ptr-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-color: rgb(20 20 20 / 0.18);
+  border-top-color: #141414;
+}
+
+.kb-boot-splash__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid rgb(182 153 85 / 0.25);
+  border-top-color: var(--color-brand-gold);
+  border-radius: 50%;
+  animation: kb-boot-spin 0.7s linear infinite;
+}
+
+@keyframes kb-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.kb-auth-otp.input-otp {
+  gap: 0.625rem;
+}
+
+.kb-auth-otp .input-otp__group {
+  gap: 0.5rem;
+}
+
+.kb-auth-otp .input-otp__slot {
+  height: 3rem;
+  width: 2.75rem;
+  flex: 0 0 2.75rem;
+  border-radius: 0.75rem;
+  border-color: var(--color-brand-border);
+  background-color: var(--color-brand-cream);
+  color: #141414;
+  font-size: 1.125rem;
+}
+
+.kb-auth-otp .input-otp__slot[data-active="true"],
+.kb-auth-otp .input-otp__slot[data-filled="true"] {
+  border-color: var(--color-brand-gold);
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgb(182 153 85 / 0.25);
+}
+
+.kb-auth-otp .input-otp__slot[data-invalid="true"] {
+  border-color: #b00020;
+}
+
+.kb-auth-otp .input-otp__separator {
+  width: 0.5rem;
+  height: 2px;
+  background-color: var(--color-brand-text-muted);
+  opacity: 0.45;
+}
