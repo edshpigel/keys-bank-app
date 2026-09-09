@@ -98,20 +98,22 @@ export default function PointReservationsPage() {
     return { total: 0, active: 0, revenue: 0 };
   }, [listQuery.data]);
 
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = listQuery;
+
   useEffect(() => {
     const node = loadMoreRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries[0]?.isIntersecting) return;
-        if (!listQuery.hasNextPage || listQuery.isFetchingNextPage) return;
-        void listQuery.fetchNextPage();
+        if (!hasNextPage || isFetchingNextPage) return;
+        void fetchNextPage();
       },
       { rootMargin: "240px 0px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [listQuery.hasNextPage, listQuery.isFetchingNextPage, listQuery.fetchNextPage, items.length]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, items.length]);
 
   const dateFromLabel =
     dateRange.preset === "all"
