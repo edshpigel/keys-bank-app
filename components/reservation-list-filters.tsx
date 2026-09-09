@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { KeyRound, Luggage } from "lucide-react";
 
+import { FilterChip } from "@/components/ui/filter-chip";
+import { ReservationSearchField } from "@/components/reservation-card";
 import type { ReservationFilters } from "@/lib/reservations";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
-
-const fieldClass =
-  "h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm text-brand-text outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20";
 
 type Props = {
   value: ReservationFilters;
@@ -17,77 +16,60 @@ type Props = {
 
 export function ReservationListFilters({ value, onChange, className }: Props) {
   const t = useT();
-  const [query, setQuery] = useState(value.query);
 
-  const statusOptions = useMemo(
-    () =>
-      [
-        ["all", t("reservations.statusAll")],
-        ["active", t("reservations.statusActive")],
-        ["expired", t("reservations.statusExpired")],
-        ["overstay", t("reservations.statusOverstay")],
-      ] as const,
-    [t],
-  );
+  const services = [
+    { key: "all" as const, label: t("reservations.serviceAll") },
+    {
+      key: "keys" as const,
+      label: t("reservations.serviceKeys"),
+      icon: <KeyRound className="h-3 w-3 text-brand-gold-dark" strokeWidth={2} />,
+    },
+    {
+      key: "luggage" as const,
+      label: t("reservations.serviceLuggage"),
+      icon: <Luggage className="h-3 w-3 text-[#3D6B8E]" strokeWidth={2} />,
+    },
+  ];
+
+  const statuses = [
+    { key: "all" as const, label: t("reservations.statusAll") },
+    { key: "active" as const, label: t("reservations.statusActive") },
+    { key: "overstay" as const, label: t("reservations.statusOverstay") },
+    { key: "expired" as const, label: t("reservations.statusExpired") },
+  ];
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-brand-text-muted">
-            {t("reservations.serviceFilter")}
-          </span>
-          <select
-            className={fieldClass}
-            value={value.service}
-            onChange={(e) =>
-              onChange({
-                ...value,
-                service: e.target.value as ReservationFilters["service"],
-              })
-            }
+      <div className="flex flex-wrap gap-1.5">
+        {services.map((item) => (
+          <FilterChip
+            key={item.key}
+            size="sm"
+            active={value.service === item.key}
+            onClick={() => onChange({ ...value, service: item.key })}
           >
-            <option value="all">{t("reservations.serviceAll")}</option>
-            <option value="keys">{t("reservations.serviceKeys")}</option>
-            <option value="luggage">{t("reservations.serviceLuggage")}</option>
-          </select>
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-brand-text-muted">
-            {t("reservations.statusFilter")}
-          </span>
-          <select
-            className={fieldClass}
-            value={value.status}
-            onChange={(e) =>
-              onChange({
-                ...value,
-                status: e.target.value as ReservationFilters["status"],
-              })
-            }
-          >
-            {statusOptions.map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+            {"icon" in item && value.service !== item.key ? item.icon : null}
+            {item.label}
+          </FilterChip>
+        ))}
       </div>
-      <label className="block space-y-1.5">
-        <span className="sr-only">{t("common.search")}</span>
-        <input
-          type="search"
-          className={fieldClass}
-          placeholder={t("reservations.searchPlaceholder")}
-          value={query}
-          onChange={(e) => {
-            const next = e.target.value;
-            setQuery(next);
-            onChange({ ...value, query: next });
-          }}
-        />
-      </label>
+
+      <div className="flex flex-wrap gap-1.5">
+        {statuses.map((item) => (
+          <FilterChip
+            key={item.key}
+            active={value.status === item.key}
+            onClick={() => onChange({ ...value, status: item.key })}
+          >
+            {item.label}
+          </FilterChip>
+        ))}
+      </div>
+
+      <ReservationSearchField
+        value={value.query}
+        onChange={(query) => onChange({ ...value, query })}
+      />
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
-import { PageCard } from "@/components/page-card";
 import { api, type PointListItem, type SafeGridItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
@@ -54,8 +53,10 @@ export default function PointSafesPage() {
         title={t("safes.title")}
         subtitle={point?.name_short}
         backHref={`/point/${pointId}/`}
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1">
+      <div className="flex-1">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Spinner size="lg" className="text-brand-gold" />
@@ -73,7 +74,7 @@ export default function PointSafesPage() {
                   <Link href={`/unit/${item.unit_id}/?point=${pointId}`}>
                     <div
                       className={cn(
-                        "flex min-h-[4.5rem] flex-col items-center justify-center rounded-xl border p-2 text-center transition active:scale-[0.98]",
+                        "flex min-h-[4.5rem] flex-col items-center justify-center rounded-[12px] border p-2 text-center transition active:scale-[0.98]",
                         safeCellClass(item),
                       )}
                     >
@@ -91,7 +92,7 @@ export default function PointSafesPage() {
             </ul>
           )
         ) : null}
-      </PageCard>
+      </div>
     </>
   );
 }

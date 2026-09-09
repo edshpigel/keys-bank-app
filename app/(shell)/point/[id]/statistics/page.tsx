@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
-import { PageCard } from "@/components/page-card";
 import { StatsBarChart, thinSeriesLabels } from "@/components/stats-bar-chart";
 import { StatsDonutChart } from "@/components/stats-donut-chart";
 import { StatsFiltersPanel } from "@/components/stats-filters";
@@ -21,16 +20,16 @@ import {
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-brand-border bg-white p-3 shadow-sm">
-      <p className="text-xs text-brand-text-muted">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-brand-text">{value}</p>
+    <div className="rounded-[14px] border border-brand-border bg-white p-3">
+      <p className="text-[11px] text-brand-text-muted">{label}</p>
+      <p className="mt-1 text-lg font-bold text-brand-text">{value}</p>
     </div>
   );
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-brand-border bg-white p-4 shadow-sm">
+    <div className="rounded-[14px] border border-brand-border bg-white p-4">
       <h3 className="mb-3 text-sm font-semibold text-brand-text">{title}</h3>
       {children}
     </div>
@@ -145,8 +144,10 @@ export default function PointStatisticsPage() {
         title={t("pointHub.sections.statistics")}
         subtitle={point?.name_short}
         backHref={`/point/${pointId}/`}
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1 space-y-4 pb-2">
+      <div className="flex-1 space-y-4 pb-2">
         <StatsFiltersPanel
           value={filters}
           activePreset={activePreset}
@@ -223,7 +224,7 @@ export default function PointStatisticsPage() {
             ) : null}
           </div>
         ) : null}
-      </PageCard>
+      </div>
     </>
   );
 }

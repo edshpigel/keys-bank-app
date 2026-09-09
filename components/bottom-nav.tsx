@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, UserRound } from "lucide-react";
+import { MapPin, User } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { useT } from "@/lib/i18n-provider";
 
 const tabs = [
   { href: "/points/", labelKey: "nav.points", icon: MapPin },
-  { href: "/profile/", labelKey: "nav.profile", icon: UserRound },
+  { href: "/profile/", labelKey: "nav.profile", icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -17,28 +17,30 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      className="mt-4 flex gap-1.5 rounded-full border border-black/10 bg-white/70 p-1.5 backdrop-blur-md"
-      aria-label="Main navigation"
-    >
-      {tabs.map(({ href, labelKey, icon: Icon }) => {
-        const active = pathname.startsWith(href.replace(/\/$/, ""));
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-2 py-2 text-[10px] font-semibold leading-tight transition",
-              active
-                ? "bg-gradient-to-b from-[#c3a164] to-brand-gold text-white shadow-sm"
-                : "text-brand-text/70 hover:text-brand-text",
-            )}
-          >
-            <Icon className={cn("h-[18px] w-[18px]", active ? "text-white" : "text-brand-text/65")} />
-            {t(labelKey)}
-          </Link>
-        );
-      })}
+    <nav className="flex justify-center" aria-label="Main navigation">
+      <div className="flex h-14 items-stretch gap-1 rounded-[28px] bg-white/80 p-1 shadow-[0_4px_12px_rgba(0,0,0,0.09)] backdrop-blur-md">
+        {tabs.map(({ href, labelKey, icon: Icon }) => {
+          const active = pathname.startsWith(href.replace(/\/$/, ""));
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex w-[120px] flex-col items-center justify-center gap-0.5 rounded-3xl text-[10px] leading-tight transition",
+                active
+                  ? "bg-brand-gold font-semibold text-white"
+                  : "bg-transparent font-normal text-brand-text-muted",
+              )}
+            >
+              <Icon
+                className={cn("h-5 w-5", active ? "text-white" : "text-brand-text-muted")}
+                strokeWidth={2}
+              />
+              {t(labelKey)}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

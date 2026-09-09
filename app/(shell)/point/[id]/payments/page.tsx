@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
-import { PageCard } from "@/components/page-card";
 import { PaymentCard } from "@/components/payment-card";
 import { PaymentListFilters } from "@/components/payment-list-filters";
 import { api, type PaymentListItem, type PointListItem, type ReservationListItem } from "@/lib/api";
@@ -58,35 +57,36 @@ export default function PointPaymentsPage() {
         title={t("payments.title")}
         subtitle={point?.name_short}
         backHref={`/point/${pointId}/`}
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1 space-y-4">
-        <PaymentListFilters value={filters} onChange={setFilters} />
 
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" className="text-brand-gold" />
-          </div>
-        ) : null}
+      <PaymentListFilters value={filters} onChange={setFilters} />
 
-        {error ? <Alert status="danger">{t("payments.loadError")}</Alert> : null}
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Spinner size="lg" className="text-brand-gold" />
+        </div>
+      ) : null}
 
-        {!isLoading && !error ? (
-          <ul className="space-y-3">
-            {items.map((payment) => (
-              <li key={payment.id}>
-                <PaymentCard
-                  payment={payment}
-                  reservation={reservationMap.get(payment.reservation_id)}
-                  pointId={pointId}
-                />
-              </li>
-            ))}
-            {items.length === 0 ? (
-              <p className="py-8 text-center text-sm text-brand-text-muted">{t("payments.empty")}</p>
-            ) : null}
-          </ul>
-        ) : null}
-      </PageCard>
+      {error ? <Alert status="danger">{t("payments.loadError")}</Alert> : null}
+
+      {!isLoading && !error ? (
+        <ul className="space-y-2.5">
+          {items.map((payment) => (
+            <li key={payment.id}>
+              <PaymentCard
+                payment={payment}
+                reservation={reservationMap.get(payment.reservation_id)}
+                pointId={pointId}
+              />
+            </li>
+          ))}
+          {items.length === 0 ? (
+            <p className="py-8 text-center text-sm text-brand-text-muted">{t("payments.empty")}</p>
+          ) : null}
+        </ul>
+      ) : null}
     </>
   );
 }

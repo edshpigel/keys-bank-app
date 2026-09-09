@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
-import { PageCard } from "@/components/page-card";
 import { LuggageLockSheet } from "@/components/luggage-lock-sheet";
 import { api, type LuggageGridItem, type PointListItem } from "@/lib/api";
 import { luggageCellClass, luggageStateLabel } from "@/lib/luggage";
@@ -43,8 +42,10 @@ export default function PointLuggagePage() {
         title={t("luggage.title")}
         subtitle={point?.name_short}
         backHref={`/point/${pointId}/`}
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1">
+      <div className="flex-1">
         <div className="mb-4 flex justify-end">
           <Button
             variant="secondary"
@@ -73,7 +74,7 @@ export default function PointLuggagePage() {
                   <button
                     type="button"
                     className={cn(
-                      "flex min-h-[4.25rem] w-full flex-col items-center justify-center rounded-xl border p-2 text-center transition active:scale-[0.98]",
+                      "flex min-h-[4.25rem] w-full flex-col items-center justify-center rounded-[12px] border p-2 text-center transition active:scale-[0.98]",
                       luggageCellClass(item),
                     )}
                     onClick={() => setSelected(item)}
@@ -88,7 +89,7 @@ export default function PointLuggagePage() {
             </ul>
           )
         ) : null}
-      </PageCard>
+      </div>
 
       <LuggageLockSheet
         open={Boolean(selected)}

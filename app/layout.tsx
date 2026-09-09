@@ -23,7 +23,7 @@ const cormorant = Cormorant_Garamond({
 
 const bootSplashCss = `
 html,body{margin:0;color-scheme:light only!important;background:#1a1a1a!important;color:#141414!important}
-html.app-ready,html.app-ready body{background:#d1b07a!important;color:#141414!important}
+html.app-ready,html.app-ready body{background:#ede4d3!important;color:#1a1a1a!important}
 #kb-boot-splash{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#1a1a1a;color:#fff}
 html.app-ready #kb-boot-splash{display:none!important}
 .kb-boot-splash__brand{font:600 1.75rem/1.2 system-ui,-apple-system,sans-serif;letter-spacing:.08em;color:#b69955}

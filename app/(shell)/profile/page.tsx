@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { PageCard } from "@/components/page-card";
+import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
 import { api, type MeProfile } from "@/lib/api";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { isTelegramWebApp } from "@/lib/telegram";
@@ -20,53 +20,45 @@ export default function ProfilePage() {
 
   return (
     <>
-      <AppHeader title={t("profile.title")} showLogout />
-      <PageCard className="flex-1">
-        <div className="mb-4 flex justify-end">
-          <LanguageSwitcher compact />
-        </div>
+      <AppHeader
+        title={t("profile.title")}
+        showLogout
+        size="lg"
+        trailing={<LanguageSwitcher compact />}
+      />
 
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <Spinner className="text-brand-gold" />
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Spinner className="text-brand-gold" />
+        </div>
+      ) : null}
+      {error ? <Alert status="danger">{t("profile.loadError")}</Alert> : null}
+      {data ? (
+        <SoftCard className="space-y-4">
+          <div>
+            <SectionLabel>{t("profile.email")}</SectionLabel>
+            <div className="mt-1 font-medium text-brand-text">{data.email}</div>
           </div>
-        ) : null}
-        {error ? <Alert status="danger">{t("profile.loadError")}</Alert> : null}
-        {data ? (
-          <dl className="space-y-4">
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-brand-text-muted">
-                {t("profile.email")}
-              </dt>
-              <dd className="mt-1 font-medium">{data.email}</dd>
+          <div>
+            <SectionLabel>{t("profile.role")}</SectionLabel>
+            <div className="mt-1 capitalize text-brand-text">{data.role}</div>
+          </div>
+          <div>
+            <SectionLabel>{t("profile.locale")}</SectionLabel>
+            <div className="mt-1 uppercase text-brand-text">{locale}</div>
+          </div>
+          <div>
+            <SectionLabel>{t("profile.telegram")}</SectionLabel>
+            <div className="mt-1 text-brand-text">
+              {data.telegram_user_id
+                ? t("profile.telegramLinked")
+                : isTelegramWebApp()
+                  ? t("profile.telegramUnlinked")
+                  : t("profile.telegramNa")}
             </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-brand-text-muted">
-                {t("profile.role")}
-              </dt>
-              <dd className="mt-1 capitalize">{data.role}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-brand-text-muted">
-                {t("profile.locale")}
-              </dt>
-              <dd className="mt-1 uppercase">{locale}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-brand-text-muted">
-                {t("profile.telegram")}
-              </dt>
-              <dd className="mt-1">
-                {data.telegram_user_id
-                  ? t("profile.telegramLinked")
-                  : isTelegramWebApp()
-                    ? t("profile.telegramUnlinked")
-                    : t("profile.telegramNa")}
-              </dd>
-            </div>
-          </dl>
-        ) : null}
-      </PageCard>
+          </div>
+        </SoftCard>
+      ) : null}
     </>
   );
 }

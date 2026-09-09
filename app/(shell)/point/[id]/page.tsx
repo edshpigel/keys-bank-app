@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
 import { MenuLink } from "@/components/menu-link";
-import { PageCard } from "@/components/page-card";
+import { SoftCard } from "@/components/ui/soft-card";
 import { api, type DashboardSummary, type PointListItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 
@@ -75,40 +75,38 @@ export default function PointHubPage() {
         title={point?.name_short || t("pointHub.titleFallback")}
         subtitle={point?.city}
         backHref="/points/"
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1 space-y-4">
-        {isLoading ? (
-          <div className="flex justify-center py-6">
-            <Spinner className="text-brand-gold" />
-          </div>
-        ) : null}
-        {error ? <Alert status="danger">{t("pointHub.dashboardError")}</Alert> : null}
 
-        {stats.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2">
-            {stats.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-[14px] border border-black/10 bg-brand-cream/80 px-3 py-2.5"
-              >
-                <div className="text-xl font-bold tabular-nums text-brand-text">{item.value}</div>
-                <div className="text-[11px] text-brand-text-muted">{item.label}</div>
-              </div>
-            ))}
-          </div>
-        ) : null}
+      {isLoading ? (
+        <div className="flex justify-center py-6">
+          <Spinner className="text-brand-gold" />
+        </div>
+      ) : null}
+      {error ? <Alert status="danger">{t("pointHub.dashboardError")}</Alert> : null}
 
-        <nav className="flex flex-col gap-2" aria-label="Point sections">
-          {sections.map((section) => (
-            <MenuLink
-              key={section.key}
-              href={section.href}
-              label={section.label}
-              icon={section.icon}
-            />
+      {stats.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2">
+          {stats.map((item) => (
+            <SoftCard key={item.label} padding="sm">
+              <div className="text-xl font-bold tabular-nums text-brand-text">{item.value}</div>
+              <div className="text-[11px] text-brand-text-muted">{item.label}</div>
+            </SoftCard>
           ))}
-        </nav>
-      </PageCard>
+        </div>
+      ) : null}
+
+      <nav className="flex flex-col gap-2" aria-label="Point sections">
+        {sections.map((section) => (
+          <MenuLink
+            key={section.key}
+            href={section.href}
+            label={section.label}
+            icon={section.icon}
+          />
+        ))}
+      </nav>
     </>
   );
 }

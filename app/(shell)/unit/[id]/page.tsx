@@ -7,7 +7,6 @@ import { Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
-import { PageCard } from "@/components/page-card";
 import { ApiError, api, type PointListItem, type UnitReservationItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 
@@ -55,8 +54,10 @@ function UnitDetailInner() {
         title={t("safes.unitTitle", { label })}
         subtitle={point?.name_short}
         backHref={backHref}
+        backSide="end"
+        size="lg"
       />
-      <PageCard tight className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4">
         {unit?.operational_status === "pending_empty" ? (
           <Button
             variant="primary"
@@ -79,7 +80,9 @@ function UnitDetailInner() {
           </Alert>
         ) : null}
 
-        <h2 className="text-sm font-semibold text-brand-text-muted">{t("safes.reservations")}</h2>
+        <h2 className="text-[11px] font-semibold uppercase tracking-[1px] text-brand-text-muted">
+          {t("safes.reservations")}
+        </h2>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -94,9 +97,9 @@ function UnitDetailInner() {
               <li key={row.id}>
                 <Link
                   href={`/reservation/${row.id}/?point=${pointId}`}
-                  className="block rounded-xl border border-brand-border bg-white p-3 active:scale-[0.99]"
+                  className="block rounded-[14px] border border-brand-border bg-white p-3.5 active:scale-[0.99]"
                 >
-                  <div className="font-semibold">#{row.public_id}</div>
+                  <div className="font-semibold text-brand-text">#{row.public_id}</div>
                   <div className="text-sm capitalize text-brand-text-muted">
                     {row.service_type} · {t(`lifecycle.${row.lifecycle}`)}
                   </div>
@@ -111,7 +114,7 @@ function UnitDetailInner() {
             ) : null}
           </ul>
         ) : null}
-      </PageCard>
+      </div>
     </>
   );
 }

@@ -7,7 +7,7 @@ import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
 
 const fieldClass =
-  "h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm text-brand-text outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20";
+  "h-10 w-full rounded-[10px] border border-brand-border bg-white px-3 text-sm text-brand-text outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20";
 
 type Props = {
   value: PaymentFilters;

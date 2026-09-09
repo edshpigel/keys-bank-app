@@ -228,21 +228,24 @@ export type ReservationListItem = {
   lifecycle: string;
   access_status: string;
   email: string;
-  starts_at: string;
-  ends_at: string;
-  safe_label: string | null;
-  locker_qty: number | null;
-};
-
-export type ReservationDetail = ReservationListItem & {
   phone_e164: string | null;
   first_name: string | null;
   last_name: string | null;
-  locale: string;
+  starts_at: string;
+  ends_at: string;
+  created_at: string | null;
+  safe_label: string | null;
+  locker_qty: number | null;
   ttlock_passcode: string | null;
-  assigned_unit_ids: string[] | null;
   auto_renew_enabled: boolean;
   takeout_at: string | null;
+  amount_ttc_cents: number;
+  assigned_unit_labels: string[] | null;
+};
+
+export type ReservationDetail = ReservationListItem & {
+  locale: string;
+  assigned_unit_ids: string[] | null;
   rebook_at: string | null;
   payments: Array<{
     id: string;
