@@ -16,6 +16,7 @@
   },
   "nav": {
     "points": "Точки",
+    "clients": "Клиенты",
     "profile": "Профиль",
     "moreSoon": "Скоро"
   },
@@ -52,6 +53,16 @@
     "subtitle": "Выберите точку",
     "empty": "Нет назначенных точек",
     "loadError": "Не удалось загрузить точки"
+  },
+  "clients": {
+    "title": "Клиенты",
+    "subtitle": "Гости по вашим точкам",
+    "detailTitle": "Клиент",
+    "searchPlaceholder": "Имя, email или телефон",
+    "empty": "Клиенты не найдены",
+    "loadError": "Не удалось загрузить клиентов",
+    "bookingsCount": "{count} бронирований",
+    "noBookings": "Нет бронирований"
   },
   "pointHub": {
     "titleFallback": "Точка",

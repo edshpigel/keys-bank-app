@@ -22,7 +22,7 @@ export function ListRow({ href, title, subtitle, className }: ListRowProps) {
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold leading-snug text-brand-text">{title}</div>
         {subtitle ? (
-          <div className="mt-0.5 text-xs capitalize text-brand-text-muted">{subtitle}</div>
+          <div className="mt-0.5 text-xs text-brand-text-muted">{subtitle}</div>
         ) : null}
       </div>
       <ChevronRight className="h-4 w-4 shrink-0 text-brand-text-muted" strokeWidth={2} />

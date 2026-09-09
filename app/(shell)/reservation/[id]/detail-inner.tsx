@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 import { AppHeader } from "@/components/app-header";
 import { ReservationActionsPanel } from "@/components/reservation-actions-panel";
@@ -16,6 +17,7 @@ import { ReservationActivityList } from "@/components/reservation-activity-list"
 import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { api, type PointListItem, type ReservationDetail } from "@/lib/api";
+import { clientHref } from "@/lib/clients";
 import {
   clientDisplayName,
   clientInitials,
@@ -147,24 +149,26 @@ export default function ReservationDetailInner() {
 
           <div className="space-y-2">
             <SectionLabel>{t("reservation.sectionContact")}</SectionLabel>
-            <SoftCard accent="gold" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-gold text-base font-semibold text-white">
-                {initials}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[15px] font-semibold text-brand-text">
-                  {clientName}
+            <Link href={clientHref(data)} className="block">
+              <SoftCard accent="gold" className="flex items-center gap-3 transition active:scale-[0.99]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-gold text-base font-semibold text-white">
+                  {initials}
                 </div>
-                <div className="truncate text-xs text-brand-text-muted">{data.email}</div>
-                {data.phone_e164 ? (
-                  <div className="truncate text-xs text-brand-text-muted">{data.phone_e164}</div>
-                ) : null}
-                <div className="mt-0.5 text-[10px] font-medium text-brand-gold-dark">
-                  {t("reservation.tapClient")}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[15px] font-semibold text-brand-text">
+                    {clientName}
+                  </div>
+                  <div className="truncate text-xs text-brand-text-muted">{data.email}</div>
+                  {data.phone_e164 ? (
+                    <div className="truncate text-xs text-brand-text-muted">{data.phone_e164}</div>
+                  ) : null}
+                  <div className="mt-0.5 text-[10px] font-medium text-brand-gold-dark">
+                    {t("reservation.tapClient")}
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-brand-gold-dark" strokeWidth={2} />
-            </SoftCard>
+                <ChevronRight className="h-5 w-5 shrink-0 text-brand-gold-dark" strokeWidth={2} />
+              </SoftCard>
+            </Link>
           </div>
 
           <div className="space-y-2">

@@ -14,10 +14,15 @@ type Props = {
   className?: string;
 };
 
+function scrollTop() {
+  if (typeof window === "undefined") return 0;
+  return window.scrollY || document.documentElement.scrollTop || 0;
+}
+
 export function PullToRefresh({ children, className }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const pulling = useRef(false);
   const refreshing = useRef(false);
@@ -25,14 +30,10 @@ export function PullToRefresh({ children, className }: Props) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-
     function onStart(event: TouchEvent) {
-      const node = scrollerRef.current;
-      if (!node || refreshing.current) return;
+      if (refreshing.current) return;
       if (event.touches.length !== 1) return;
-      if (node.scrollTop > 1) {
+      if (scrollTop() > 1) {
         pulling.current = false;
         return;
       }
@@ -49,9 +50,8 @@ export function PullToRefresh({ children, className }: Props) {
     }
 
     function onMove(event: TouchEvent) {
-      const node = scrollerRef.current;
-      if (!node || !pulling.current || refreshing.current) return;
-      if (node.scrollTop > 1) {
+      if (!pulling.current || refreshing.current) return;
+      if (scrollTop() > 1) {
         pulling.current = false;
         setPull(0);
         return;
@@ -90,26 +90,22 @@ export function PullToRefresh({ children, className }: Props) {
       }
     }
 
-    scroller.addEventListener("touchstart", onStart, { passive: true });
-    scroller.addEventListener("touchmove", onMove, { passive: false });
-    scroller.addEventListener("touchend", onEnd);
-    scroller.addEventListener("touchcancel", onEnd);
+    document.addEventListener("touchstart", onStart, { passive: true });
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd);
+    document.addEventListener("touchcancel", onEnd);
     return () => {
-      scroller.removeEventListener("touchstart", onStart);
-      scroller.removeEventListener("touchmove", onMove);
-      scroller.removeEventListener("touchend", onEnd);
-      scroller.removeEventListener("touchcancel", onEnd);
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
+      document.removeEventListener("touchcancel", onEnd);
     };
   }, [queryClient]);
 
   const showHint = pull > 8 || busy;
 
   return (
-    <div
-      ref={scrollerRef}
-      className={cn("overscroll-y-contain", className)}
-      style={{ touchAction: "pan-y" }}
-    >
+    <div ref={rootRef} className={cn(className)} style={{ touchAction: "pan-y" }}>
       <div
         className="flex items-end justify-center overflow-hidden text-brand-text"
         style={{ height: busy ? THRESHOLD : pull }}

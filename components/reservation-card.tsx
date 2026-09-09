@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ReservationListItem } from "@/lib/api";
+import { clientHref } from "@/lib/clients";
 import { cn } from "@/lib/cn";
 import {
   clientDisplayName,
@@ -37,100 +38,111 @@ export function ReservationCard({ item, pointId, timeZone }: Props) {
       : item.safe_label
         ? [item.safe_label]
         : [];
+  const reservationHref = `/reservation/${item.id}/?point=${pointId}`;
+  const clientLink = clientHref(item);
 
   return (
-    <Link href={`/reservation/${item.id}/?point=${pointId}`}>
-      <article
-        className={cn(
-          "flex flex-col gap-2.5 rounded-[14px] border p-3.5 transition active:scale-[0.99]",
-          isLuggage ? "border-[#C5D6E4] bg-[#F3F7FA]" : "border-brand-border bg-white",
-        )}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="mb-1 flex flex-wrap items-center gap-1.5">
-              <StatusBadge
-                tone={isLuggage ? "info" : "gold"}
-                icon={
-                  isLuggage ? (
-                    <Luggage className="h-3 w-3" strokeWidth={2} />
-                  ) : (
-                    <KeyRound className="h-3 w-3" strokeWidth={2} />
-                  )
-                }
-              >
-                {serviceLabel}
-              </StatusBadge>
-              <StatusBadge tone={visual.tone}>
-                {(() => {
-                  const label = t(visual.labelKey);
-                  return label === visual.labelKey ? item.lifecycle : label;
-                })()}
-              </StatusBadge>
-            </div>
-            <div className="truncate text-[15px] font-semibold text-brand-text">{name}</div>
-            <div className="truncate text-xs text-brand-text-muted">{item.email}</div>
+    <article
+      className={cn(
+        "relative flex flex-col gap-2.5 rounded-[14px] border p-3.5 transition active:scale-[0.99]",
+        isLuggage ? "border-[#C5D6E4] bg-[#F3F7FA]" : "border-brand-border bg-white",
+      )}
+    >
+      <Link
+        href={reservationHref}
+        className="absolute inset-0 rounded-[14px]"
+        aria-label={`#${item.public_id}`}
+      />
+
+      <div className="relative z-10 flex items-start justify-between gap-3 pointer-events-none">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-1.5">
+            <StatusBadge
+              tone={isLuggage ? "info" : "gold"}
+              icon={
+                isLuggage ? (
+                  <Luggage className="h-3 w-3" strokeWidth={2} />
+                ) : (
+                  <KeyRound className="h-3 w-3" strokeWidth={2} />
+                )
+              }
+            >
+              {serviceLabel}
+            </StatusBadge>
+            <StatusBadge tone={visual.tone}>
+              {(() => {
+                const label = t(visual.labelKey);
+                return label === visual.labelKey ? item.lifecycle : label;
+              })()}
+            </StatusBadge>
           </div>
-          <div className="shrink-0 text-right text-[15px] font-semibold text-brand-text">
-            {(item.amount_ttc_cents ?? 0) > 0
-              ? formatMoney(item.amount_ttc_cents, "EUR", locale)
-              : `#${item.public_id}`}
-            <span className="ml-0.5 text-brand-text-muted">›</span>
+          <Link
+            href={clientLink}
+            className="pointer-events-auto relative z-20 block truncate text-[15px] font-semibold text-brand-text underline-offset-2 hover:underline"
+          >
+            {name}
+          </Link>
+          <div className="truncate text-xs text-brand-text-muted">{item.email}</div>
+        </div>
+        <div className="shrink-0 text-right text-[15px] font-semibold text-brand-text">
+          {(item.amount_ttc_cents ?? 0) > 0
+            ? formatMoney(item.amount_ttc_cents, "EUR", locale)
+            : `#${item.public_id}`}
+          <span className="ml-0.5 text-brand-text-muted">›</span>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex items-center gap-2 pointer-events-none">
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-semibold text-brand-text">
+            {formatDateShort(item.starts_at, locale, timeZone)}
+          </div>
+          <div className="text-xs text-brand-gold-dark">
+            {formatTime(item.starts_at, locale, timeZone)}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-semibold text-brand-text">
-              {formatDateShort(item.starts_at, locale, timeZone)}
-            </div>
-            <div className="text-xs text-brand-gold-dark">
-              {formatTime(item.starts_at, locale, timeZone)}
-            </div>
+        <div className="flex flex-col items-center gap-0.5 px-1">
+          <ArrowRight className="h-3.5 w-3.5 text-brand-text-muted" strokeWidth={2} />
+          {duration ? (
+            <span className="text-[10px] font-medium text-brand-text-muted">{duration}</span>
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1 text-right">
+          <div className="text-[13px] font-semibold text-brand-text">
+            {formatDateShort(item.ends_at, locale, timeZone)}
           </div>
-          <div className="flex flex-col items-center gap-0.5 px-1">
-            <ArrowRight className="h-3.5 w-3.5 text-brand-text-muted" strokeWidth={2} />
-            {duration ? (
-              <span className="text-[10px] font-medium text-brand-text-muted">{duration}</span>
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1 text-right">
-            <div className="text-[13px] font-semibold text-brand-text">
-              {formatDateShort(item.ends_at, locale, timeZone)}
-            </div>
-            <div className="text-xs text-brand-gold-dark">
-              {formatTime(item.ends_at, locale, timeZone)}
-            </div>
+          <div className="text-xs text-brand-gold-dark">
+            {formatTime(item.ends_at, locale, timeZone)}
           </div>
         </div>
+      </div>
 
-        {labels.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-brand-text-muted">
-              {isLuggage ? t("reservation.lockers") : t("reservation.safes")}
+      {labels.length > 0 ? (
+        <div className="relative z-10 flex flex-wrap items-center gap-1.5 pointer-events-none">
+          <span className="text-[11px] font-semibold text-brand-text-muted">
+            {isLuggage ? t("reservation.lockers") : t("reservation.safes")}
+          </span>
+          {labels.map((label) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-0.5 rounded-md border border-brand-border bg-white px-1.5 py-0.5 text-[11px] font-medium text-brand-text"
+            >
+              <Vault className="h-2.5 w-2.5 text-brand-text-muted" strokeWidth={2} />
+              {label.startsWith("#") ? label : `#${label}`}
             </span>
-            {labels.map((label) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-0.5 rounded-md border border-brand-border bg-white px-1.5 py-0.5 text-[11px] font-medium text-brand-text"
-              >
-                <Vault className="h-2.5 w-2.5 text-brand-text-muted" strokeWidth={2} />
-                {label.startsWith("#") ? label : `#${label}`}
-              </span>
-            ))}
-          </div>
-        ) : null}
+          ))}
+        </div>
+      ) : null}
 
-        {item.ttlock_passcode ? (
-          <div className="flex items-center gap-1.5">
-            <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
-            <span className="text-xs font-semibold text-brand-text">
-              {formatTtlockPasscode(item.ttlock_passcode)}
-            </span>
-          </div>
-        ) : null}
-      </article>
-    </Link>
+      {item.ttlock_passcode ? (
+        <div className="relative z-10 flex items-center gap-1.5 pointer-events-none">
+          <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
+          <span className="text-xs font-semibold text-brand-text">
+            {formatTtlockPasscode(item.ttlock_passcode)}
+          </span>
+        </div>
+      ) : null}
+    </article>
   );
 }
 

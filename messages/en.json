@@ -16,6 +16,7 @@
   },
   "nav": {
     "points": "Points",
+    "clients": "Clients",
     "profile": "Profile",
     "moreSoon": "More soon"
   },
@@ -52,6 +53,16 @@
     "subtitle": "Choose a point",
     "empty": "No points assigned",
     "loadError": "Could not load points"
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "Guests across your points",
+    "detailTitle": "Client",
+    "searchPlaceholder": "Name, email or phone",
+    "empty": "No clients found",
+    "loadError": "Could not load clients",
+    "bookingsCount": "{count} bookings",
+    "noBookings": "No bookings"
   },
   "pointHub": {
     "titleFallback": "Point",

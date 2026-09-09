@@ -39,19 +39,20 @@ function ShellLayoutInner({
   }, [setTarget]);
 
   return (
-    <div className="kb-app-bg flex justify-center overflow-hidden">
-      <div className="flex h-full w-full max-w-[990px] flex-col px-5">
-        <PullToRefresh className="safe-top min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-3 pb-3">
+    <div className="kb-app-bg flex justify-center">
+      <div className="flex min-h-dvh w-full max-w-[990px] flex-col px-5">
+        <PullToRefresh className="safe-top flex-1 pt-3 pb-3">
           <div className="flex flex-col gap-3">{children}</div>
         </PullToRefresh>
 
-        <div
-          ref={slotRef}
-          className={hasSticky ? "shrink-0 pb-2 pt-1" : "h-0 shrink-0 overflow-hidden"}
-        />
-
-        <div className="kb-bottom-nav-wrap shrink-0">
-          <BottomNav />
+        <div className="sticky bottom-0 z-30 bg-brand-page-bg/95 backdrop-blur-md">
+          <div
+            ref={slotRef}
+            className={hasSticky ? "shrink-0 px-0 pb-2 pt-1" : "h-0 shrink-0 overflow-hidden"}
+          />
+          <div className="kb-bottom-nav-wrap">
+            <BottomNav />
+          </div>
         </div>
       </div>
     </div>

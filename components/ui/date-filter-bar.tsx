@@ -1,7 +1,9 @@
 "use client";
 
-import { Calendar, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import { CalendarDate, type DateValue } from "@internationalized/date";
+import { RangeCalendar } from "@heroui/react";
+import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { useT } from "@/lib/i18n-provider";
@@ -18,6 +20,25 @@ type DateFilterBarProps = {
   className?: string;
 };
 
+function parseIsoDay(value: string | undefined | null): CalendarDate | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  return new CalendarDate(Number(match[1]), Number(match[2]), Number(match[3]));
+}
+
+function toIsoDay(value: DateValue) {
+  const y = value.year;
+  const m = String(value.month).padStart(2, "0");
+  const d = String(value.day).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function todayCalendarDate() {
+  const now = new Date();
+  return new CalendarDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
+
 export function DateFilterBar({
   dateFromLabel,
   dateToLabel,
@@ -30,14 +51,17 @@ export function DateFilterBar({
 }: DateFilterBarProps) {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [draftFrom, setDraftFrom] = useState(fromValue);
-  const [draftTo, setDraftTo] = useState(toValue);
+  const initialRange = useMemo(() => {
+    const from = parseIsoDay(fromValue) ?? todayCalendarDate();
+    const to = parseIsoDay(toValue) ?? from;
+    return { start: from, end: to };
+  }, [fromValue, toValue]);
+  const [draft, setDraft] = useState(initialRange);
 
   useEffect(() => {
     if (!open) return;
-    setDraftFrom(fromValue || "");
-    setDraftTo(toValue || "");
-  }, [open, fromValue, toValue]);
+    setDraft(initialRange);
+  }, [open, initialRange]);
 
   const presets: Array<{ key: DatePreset; label: string }> = [
     { key: "all", label: t("reservations.dateAllShort") },
@@ -47,6 +71,7 @@ export function DateFilterBar({
   ];
 
   const isRange = Boolean(dateToLabel && dateToLabel !== dateFromLabel);
+  const canApply = Boolean(draft.start && draft.end);
 
   return (
     <>
@@ -61,7 +86,7 @@ export function DateFilterBar({
           onClick={() => setOpen(true)}
           className="inline-flex min-w-0 flex-1 items-start gap-2 rounded-[10px] px-1 py-0.5 text-left"
         >
-          <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-[#A8894E]" strokeWidth={2} />
+          <CalendarIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#A8894E]" strokeWidth={2} />
           <span className="min-w-0 flex-1">
             <span className="block text-[13px] font-medium leading-tight text-brand-text">
               {dateFromLabel}
@@ -104,6 +129,7 @@ export function DateFilterBar({
             className="absolute inset-0"
             aria-label={t("common.back")}
             onClick={() => setOpen(false)}
+            data-overlay
           />
           <div
             role="dialog"
@@ -117,30 +143,36 @@ export function DateFilterBar({
               {t("reservations.dateRangeHint")}
             </p>
 
-            <div className="mt-4 grid gap-3">
-              <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-brand-text-muted">
-                  {t("reservations.dateFrom")}
-                </span>
-                <input
-                  type="date"
-                  value={draftFrom}
-                  onChange={(e) => setDraftFrom(e.target.value)}
-                  className="h-11 w-full rounded-[10px] border border-brand-border bg-white px-3 text-sm text-brand-text outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20"
-                />
-              </label>
-              <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-brand-text-muted">
-                  {t("reservations.dateTo")}
-                </span>
-                <input
-                  type="date"
-                  value={draftTo}
-                  min={draftFrom || undefined}
-                  onChange={(e) => setDraftTo(e.target.value)}
-                  className="h-11 w-full rounded-[10px] border border-brand-border bg-white px-3 text-sm text-brand-text outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20"
-                />
-              </label>
+            <div className="mt-4 flex justify-center">
+              <RangeCalendar
+                aria-label={t("reservations.dateRangeTitle")}
+                value={draft}
+                onChange={(next) => {
+                  if (!next?.start || !next?.end) return;
+                  setDraft({ start: next.start, end: next.end });
+                }}
+                className="w-full max-w-[320px]"
+              >
+                <RangeCalendar.Header className="mb-2 flex items-center justify-between gap-2">
+                  <RangeCalendar.Heading className="text-sm font-semibold text-brand-text" />
+                  <div className="flex items-center gap-1">
+                    <RangeCalendar.NavButton slot="previous" />
+                    <RangeCalendar.NavButton slot="next" />
+                  </div>
+                </RangeCalendar.Header>
+                <RangeCalendar.Grid className="w-full">
+                  <RangeCalendar.GridHeader>
+                    {(day) => (
+                      <RangeCalendar.HeaderCell className="text-[11px] text-brand-text-muted">
+                        {day}
+                      </RangeCalendar.HeaderCell>
+                    )}
+                  </RangeCalendar.GridHeader>
+                  <RangeCalendar.GridBody>
+                    {(date) => <RangeCalendar.Cell date={date} />}
+                  </RangeCalendar.GridBody>
+                </RangeCalendar.Grid>
+              </RangeCalendar>
             </div>
 
             <div className="mt-5 flex gap-2">
@@ -154,10 +186,10 @@ export function DateFilterBar({
               <button
                 type="button"
                 className="h-11 flex-1 rounded-[12px] bg-brand-gold text-sm font-semibold text-white disabled:opacity-50"
-                disabled={!draftFrom || !draftTo}
+                disabled={!canApply}
                 onClick={() => {
-                  if (!draftFrom || !draftTo) return;
-                  onApplyCustomRange(draftFrom, draftTo);
+                  if (!draft.start || !draft.end) return;
+                  onApplyCustomRange(toIsoDay(draft.start), toIsoDay(draft.end));
                   setOpen(false);
                 }}
               >
