@@ -52,6 +52,11 @@ export function buildDateRange(preset: DatePreset, anchor = new Date()): DateRan
   return { preset: "custom", from: toIsoDay(today), to: toIsoDay(today) };
 }
 
+export function customDateRange(from: string, to: string): DateRangeFilter {
+  if (from <= to) return { preset: "custom", from, to };
+  return { preset: "custom", from: to, to: from };
+}
+
 function overlapsRange(item: ReservationListItem, range: DateRangeFilter) {
   const start = new Date(item.starts_at).getTime();
   const end = new Date(item.ends_at).getTime();

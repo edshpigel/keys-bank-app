@@ -25,6 +25,7 @@ import {
   formatMoney,
   formatTime,
   formatDateShort,
+  formatTtlockPasscode,
 } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { reservationStatusVisual } from "@/lib/reservations";
@@ -95,7 +96,7 @@ export default function ReservationDetailInner() {
       {error ? <Alert status="danger">{t("reservation.loadError")}</Alert> : null}
 
       {data ? (
-        <div className="flex flex-col gap-3 pb-2">
+        <div className="flex w-full flex-col gap-3 pb-4">
           <SoftCard className="flex flex-col gap-3" accent={isLuggage ? "luggage" : "default"}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1 space-y-1">
@@ -190,7 +191,9 @@ export default function ReservationDetailInner() {
               {data.ttlock_passcode ? (
                 <div className="flex items-center justify-between rounded-[10px] bg-brand-header px-3 py-2.5">
                   <span className="text-[11px] text-white/50">{t("reservation.passcode")}</span>
-                  <span className="text-lg font-bold text-brand-gold">{data.ttlock_passcode}</span>
+                  <span className="text-lg font-bold text-brand-gold">
+                    {formatTtlockPasscode(data.ttlock_passcode)}
+                  </span>
                 </div>
               ) : null}
 
@@ -202,7 +205,7 @@ export default function ReservationDetailInner() {
 
           <div className="space-y-2">
             <SectionLabel>{t("reservation.sectionActivity")}</SectionLabel>
-            <SoftCard padding="none" className="overflow-hidden">
+            <SoftCard padding="none">
               <ul>
                 {data.payments.map((payment) => (
                   <li

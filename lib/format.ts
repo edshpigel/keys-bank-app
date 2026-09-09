@@ -67,6 +67,13 @@ export function formatMoney(cents: number, currency: string, locale: Locale) {
   }).format(cents / 100);
 }
 
+/** Always show TTLock codes with a trailing #. */
+export function formatTtlockPasscode(code: string | null | undefined) {
+  const trimmed = (code || "").trim();
+  if (!trimmed) return "";
+  return trimmed.endsWith("#") ? trimmed : `${trimmed}#`;
+}
+
 export function clientInitials(firstName?: string | null, lastName?: string | null, email?: string) {
   const a = (firstName || "").trim();
   const b = (lastName || "").trim();

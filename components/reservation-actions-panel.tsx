@@ -118,7 +118,7 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
       {actions.length > 0 ? (
         <div className="space-y-2">
           <SectionLabel>{t("reservation.sectionActions")}</SectionLabel>
-          <SoftCard padding="none" className="overflow-hidden">
+          <SoftCard padding="none">
             {message ? (
               <div className="border-b border-brand-border px-3.5 py-2">
                 <Alert status={message.kind === "error" ? "danger" : "accent"}>{message.text}</Alert>
@@ -160,8 +160,8 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
       {(notifications ?? []).length > 0 ? (
         <div className="space-y-2">
           <SectionLabel>{t("reservation.notificationsTitle")}</SectionLabel>
-          <SoftCard padding="none" className="overflow-hidden">
-            <ul className="max-h-56 overflow-y-auto">
+          <SoftCard padding="none">
+            <ul>
               {(notifications ?? []).map((row) => (
                 <li
                   key={row.id}

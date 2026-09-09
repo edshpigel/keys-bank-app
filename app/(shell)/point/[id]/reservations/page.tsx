@@ -15,6 +15,7 @@ import { formatCompactMoney, formatDateShort } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import {
   buildDateRange,
+  customDateRange,
   filterReservations,
   reservationStats,
   type ReservationFilters,
@@ -62,10 +63,11 @@ export default function PointReservationsPage() {
 
   const stats = useMemo(() => reservationStats(items), [items]);
 
-  const dateLabel =
+  const dateFromLabel = formatDateShort(`${dateRange.from}T12:00:00`, locale);
+  const dateToLabel =
     dateRange.from === dateRange.to
-      ? formatDateShort(`${dateRange.from}T12:00:00`, locale)
-      : `${formatDateShort(`${dateRange.from}T12:00:00`, locale)} – ${formatDateShort(`${dateRange.to}T12:00:00`, locale)}`;
+      ? null
+      : formatDateShort(`${dateRange.to}T12:00:00`, locale);
 
   return (
     <>
@@ -129,9 +131,13 @@ export default function PointReservationsPage() {
 
       <ShellStickyBar>
         <DateFilterBar
-          dateLabel={dateLabel}
+          dateFromLabel={dateFromLabel}
+          dateToLabel={dateToLabel}
           preset={dateRange.preset}
+          fromValue={dateRange.from}
+          toValue={dateRange.to}
           onPresetChange={(preset) => setDateRange(buildDateRange(preset))}
+          onApplyCustomRange={(from, to) => setDateRange(customDateRange(from, to))}
         />
       </ShellStickyBar>
     </>

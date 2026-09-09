@@ -90,7 +90,12 @@
     "statRevenue": "Revenue",
     "dateToday": "Today",
     "dateWeek": "Week",
-    "dateMonth": "Month"
+    "dateMonth": "Month",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "dateApply": "Apply",
+    "dateRangeTitle": "Date range",
+    "dateRangeHint": "Pick start and end dates"
   },
   "reservation": {
     "title": "Reservation",

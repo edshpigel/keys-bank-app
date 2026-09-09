@@ -90,7 +90,12 @@
     "statRevenue": "Выручка",
     "dateToday": "Сегодня",
     "dateWeek": "Неделя",
-    "dateMonth": "Месяц"
+    "dateMonth": "Месяц",
+    "dateFrom": "С",
+    "dateTo": "По",
+    "dateApply": "Применить",
+    "dateRangeTitle": "Период",
+    "dateRangeHint": "Выберите дату начала и окончания"
   },
   "reservation": {
     "title": "Бронирование",

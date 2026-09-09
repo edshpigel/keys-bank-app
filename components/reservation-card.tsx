@@ -12,6 +12,7 @@ import {
   formatMoney,
   formatTime,
   formatDateShort,
+  formatTtlockPasscode,
 } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { reservationStatusVisual } from "@/lib/reservations";
@@ -123,7 +124,9 @@ export function ReservationCard({ item, pointId, timeZone }: Props) {
         {item.ttlock_passcode ? (
           <div className="flex items-center gap-1.5">
             <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
-            <span className="text-xs font-semibold text-brand-text">{item.ttlock_passcode}</span>
+            <span className="text-xs font-semibold text-brand-text">
+              {formatTtlockPasscode(item.ttlock_passcode)}
+            </span>
           </div>
         ) : null}
       </article>
