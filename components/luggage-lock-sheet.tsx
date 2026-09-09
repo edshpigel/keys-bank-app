@@ -4,7 +4,7 @@ import { Button, Spinner } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { ApiError, api, type LockActionItem, type LuggageGridItem, type ReservationListItem } from "@/lib/api";
+import { ApiError, api, type LockActionItem, type LuggageGridItem, type ReservationsListResponse } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { idempotencyKey } from "@/lib/idempotency";
 import { canOccupyLocker } from "@/lib/luggage";
@@ -40,12 +40,18 @@ export function LuggageLockSheet({
 
   const { data: reservations } = useQuery({
     queryKey: ["operator", "luggage-reservations", pointId],
-    queryFn: () =>
-      api.get<ReservationListItem[]>(`points/${pointId}/reservations`, { status: "active" }),
+    queryFn: async () => {
+      const page = await api.get<ReservationsListResponse>(`points/${pointId}/reservations`, {
+        status: "active",
+        service: "luggage",
+        limit: 100,
+      });
+      return page.items;
+    },
     enabled: open && Boolean(pointId),
   });
 
-  const luggageBookings = (reservations ?? []).filter((r) => r.service_type === "luggage");
+  const luggageBookings = reservations ?? [];
 
   const { data: lockActions, refetch: refetchActions } = useQuery({
     queryKey: ["operator", "lock-actions", pointId],

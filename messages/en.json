@@ -91,6 +91,8 @@
     "dateToday": "Today",
     "dateWeek": "Week",
     "dateMonth": "Month",
+    "dateAll": "All time",
+    "dateAllShort": "All",
     "dateFrom": "From",
     "dateTo": "To",
     "dateApply": "Apply",

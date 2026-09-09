@@ -91,6 +91,8 @@
     "dateToday": "Aujourd'hui",
     "dateWeek": "Semaine",
     "dateMonth": "Mois",
+    "dateAll": "Tout le temps",
+    "dateAllShort": "Tout",
     "dateFrom": "Du",
     "dateTo": "Au",
     "dateApply": "Appliquer",

@@ -243,6 +243,17 @@ export type ReservationListItem = {
   assigned_unit_labels: string[] | null;
 };
 
+export type ReservationsListResponse = {
+  items: ReservationListItem[];
+  next_cursor: string | null;
+  has_more: boolean;
+  summary: {
+    total: number;
+    active: number;
+    revenue_ttc_cents: number;
+  } | null;
+};
+
 export type ReservationDetail = ReservationListItem & {
   locale: string;
   assigned_unit_ids: string[] | null;

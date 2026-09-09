@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { useT } from "@/lib/i18n-provider";
-
-export type DatePreset = "today" | "week" | "month" | "custom";
+import type { DatePreset } from "@/lib/reservations";
 
 type DateFilterBarProps = {
   dateFromLabel: string;
@@ -36,11 +35,12 @@ export function DateFilterBar({
 
   useEffect(() => {
     if (!open) return;
-    setDraftFrom(fromValue);
-    setDraftTo(toValue);
+    setDraftFrom(fromValue || "");
+    setDraftTo(toValue || "");
   }, [open, fromValue, toValue]);
 
   const presets: Array<{ key: DatePreset; label: string }> = [
+    { key: "all", label: t("reservations.dateAllShort") },
     { key: "today", label: t("reservations.dateToday") },
     { key: "week", label: t("reservations.dateWeek") },
     { key: "month", label: t("reservations.dateMonth") },
@@ -75,7 +75,7 @@ export function DateFilterBar({
           <ChevronDown className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-text-muted" strokeWidth={2} />
         </button>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           {presets.map((item) => {
             const active = preset === item.key;
             return (
@@ -84,7 +84,7 @@ export function DateFilterBar({
                 type="button"
                 onClick={() => onPresetChange(item.key)}
                 className={cn(
-                  "rounded-lg px-2 py-1.5 text-[11px] transition sm:px-2.5 sm:text-xs",
+                  "rounded-lg px-1.5 py-1.5 text-[10px] transition sm:px-2 sm:text-xs",
                   active
                     ? "bg-[#F5EFE3] font-semibold text-[#A8894E]"
                     : "bg-transparent font-normal text-brand-text-muted",

@@ -91,6 +91,8 @@
     "dateToday": "Сегодня",
     "dateWeek": "Неделя",
     "dateMonth": "Месяц",
+    "dateAll": "За всё время",
+    "dateAllShort": "Всё",
     "dateFrom": "С",
     "dateTo": "По",
     "dateApply": "Применить",

@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AppHeader } from "@/components/app-header";
 import { PaymentCard } from "@/components/payment-card";
 import { PaymentListFilters } from "@/components/payment-list-filters";
-import { api, type PaymentListItem, type PointListItem, type ReservationListItem } from "@/lib/api";
+import { api, type PaymentListItem, type PointListItem, type ReservationsListResponse } from "@/lib/api";
 import { filterPayments, type PaymentFilters } from "@/lib/payments";
 import { useT } from "@/lib/i18n-provider";
 
@@ -31,7 +31,13 @@ export default function PointPaymentsPage() {
 
   const { data: reservations } = useQuery({
     queryKey: ["operator", "reservations-all", pointId],
-    queryFn: () => api.get<ReservationListItem[]>(`points/${pointId}/reservations`, { status: "all" }),
+    queryFn: async () => {
+      const page = await api.get<ReservationsListResponse>(`points/${pointId}/reservations`, {
+        status: "all",
+        limit: 200,
+      });
+      return page.items;
+    },
     enabled: Boolean(pointId),
   });
 

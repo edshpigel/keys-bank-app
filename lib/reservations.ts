@@ -6,7 +6,7 @@ export type ReservationFilters = {
   query: string;
 };
 
-export type DatePreset = "today" | "week" | "month" | "custom";
+export type DatePreset = "all" | "today" | "week" | "month" | "custom";
 
 export type DateRangeFilter = {
   preset: DatePreset;
@@ -36,6 +36,9 @@ function toIsoDay(d: Date) {
 
 export function buildDateRange(preset: DatePreset, anchor = new Date()): DateRangeFilter {
   const today = startOfDay(anchor);
+  if (preset === "all") {
+    return { preset: "all", from: "", to: "" };
+  }
   if (preset === "today") {
     return { preset, from: toIsoDay(today), to: toIsoDay(today) };
   }
@@ -58,6 +61,7 @@ export function customDateRange(from: string, to: string): DateRangeFilter {
 }
 
 function overlapsRange(item: ReservationListItem, range: DateRangeFilter) {
+  if (range.preset === "all" || !range.from || !range.to) return true;
   const start = new Date(item.starts_at).getTime();
   const end = new Date(item.ends_at).getTime();
   if (Number.isNaN(start) || Number.isNaN(end)) return true;

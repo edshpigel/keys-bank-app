@@ -2,25 +2,29 @@
 
 import { Alert, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
 import { ReservationCard } from "@/components/reservation-card";
 import { ReservationListFilters } from "@/components/reservation-list-filters";
 import { DateFilterBar } from "@/components/ui/date-filter-bar";
 import { SoftCard } from "@/components/ui/soft-card";
-import { api, type PointListItem, type ReservationListItem } from "@/lib/api";
+import {
+  api,
+  type PointListItem,
+  type ReservationsListResponse,
+} from "@/lib/api";
 import { formatCompactMoney, formatDateShort } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import {
   buildDateRange,
   customDateRange,
-  filterReservations,
-  reservationStats,
   type ReservationFilters,
 } from "@/lib/reservations";
 import { ShellStickyBar } from "@/lib/shell-sticky";
+
+const PAGE_SIZE = 30;
 
 export default function PointReservationsPage() {
   const t = useT();
@@ -33,7 +37,14 @@ export default function PointReservationsPage() {
     status: "all",
     query: "",
   });
-  const [dateRange, setDateRange] = useState(() => buildDateRange("week"));
+  const [dateRange, setDateRange] = useState(() => buildDateRange("all"));
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(filters.query.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [filters.query]);
 
   const { data: points } = useQuery({
     queryKey: ["operator", "points"],
@@ -42,32 +53,78 @@ export default function PointReservationsPage() {
   const point = points?.find((p) => p.id === pointId);
   const subtitle = [point?.city, point?.name_short].filter(Boolean).join(", ");
 
-  const apiStatus =
-    filters.status === "overstay" || filters.status === "active" || filters.status === "expired"
-      ? filters.status
-      : undefined;
-
-  const { data, isLoading, error, isFetching } = useQuery({
-    queryKey: ["operator", "reservations", pointId, apiStatus],
-    queryFn: () =>
-      api.get<ReservationListItem[]>(`points/${pointId}/reservations`, {
-        status: apiStatus ?? "all",
+  const listQuery = useInfiniteQuery({
+    queryKey: [
+      "operator",
+      "reservations",
+      pointId,
+      filters.service,
+      filters.status,
+      debouncedQuery,
+      dateRange.preset,
+      dateRange.from,
+      dateRange.to,
+    ],
+    queryFn: ({ pageParam }) =>
+      api.get<ReservationsListResponse>(`points/${pointId}/reservations`, {
+        status: filters.status,
+        service: filters.service,
+        q: debouncedQuery || undefined,
+        date_from: dateRange.from || undefined,
+        date_to: dateRange.to || undefined,
+        limit: PAGE_SIZE,
+        cursor: pageParam || undefined,
       }),
+    initialPageParam: "" as string,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more && lastPage.next_cursor ? lastPage.next_cursor : undefined,
     enabled: Boolean(pointId),
   });
 
   const items = useMemo(
-    () => filterReservations(data ?? [], filters, dateRange),
-    [data, filters, dateRange],
+    () => listQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [listQuery.data],
   );
 
-  const stats = useMemo(() => reservationStats(items), [items]);
+  const stats = useMemo(() => {
+    const summary = listQuery.data?.pages.find((page) => page.summary)?.summary;
+    if (summary) {
+      return {
+        total: summary.total,
+        active: summary.active,
+        revenue: summary.revenue_ttc_cents,
+      };
+    }
+    return { total: 0, active: 0, revenue: 0 };
+  }, [listQuery.data]);
 
-  const dateFromLabel = formatDateShort(`${dateRange.from}T12:00:00`, locale);
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        if (!listQuery.hasNextPage || listQuery.isFetchingNextPage) return;
+        void listQuery.fetchNextPage();
+      },
+      { rootMargin: "240px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [listQuery.hasNextPage, listQuery.isFetchingNextPage, listQuery.fetchNextPage, items.length]);
+
+  const dateFromLabel =
+    dateRange.preset === "all"
+      ? t("reservations.dateAll")
+      : formatDateShort(`${dateRange.from}T12:00:00`, locale);
   const dateToLabel =
-    dateRange.from === dateRange.to
+    dateRange.preset === "all" || dateRange.from === dateRange.to
       ? null
       : formatDateShort(`${dateRange.to}T12:00:00`, locale);
+
+  const isLoading = listQuery.isLoading;
+  const error = listQuery.error;
+  const isFetching = listQuery.isFetching && !listQuery.isFetchingNextPage;
 
   return (
     <>
@@ -125,7 +182,15 @@ export default function PointReservationsPage() {
         </ul>
       ) : null}
 
-      {isFetching && !isLoading ? (
+      <div ref={loadMoreRef} className="h-4 w-full" aria-hidden />
+
+      {listQuery.isFetchingNextPage ? (
+        <div className="flex justify-center py-3">
+          <Spinner size="sm" className="text-brand-gold" />
+        </div>
+      ) : null}
+
+      {isFetching ? (
         <p className="text-center text-xs text-brand-text-muted">{t("common.loading")}</p>
       ) : null}
 
