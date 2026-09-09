@@ -203,6 +203,7 @@ export type PointListItem = {
   name_short: string;
   city: string;
   timezone: string;
+  allowed_services?: Array<"keys" | "luggage">;
 };
 
 export type DashboardSummary = {

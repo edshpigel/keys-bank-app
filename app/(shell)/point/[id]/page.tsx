@@ -16,6 +16,13 @@ export default function PointHubPage() {
   const params = useParams<{ id: string }>();
   const pointId = params.id;
 
+  const { data: points } = useQuery({
+    queryKey: ["operator", "points"],
+    queryFn: () => api.get<PointListItem[]>("points"),
+  });
+  const point = points?.find((p) => p.id === pointId);
+  const allowed = new Set(point?.allowed_services ?? ["keys", "luggage"]);
+
   const sections = [
     {
       key: "reservations",
@@ -29,31 +36,33 @@ export default function PointHubPage() {
       href: `/point/${pointId}/payments/`,
       icon: CreditCard,
     },
-    {
-      key: "safes",
-      label: t("pointHub.sections.safes"),
-      href: `/point/${pointId}/safes/`,
-      icon: Lock,
-    },
-    {
-      key: "luggage",
-      label: t("pointHub.sections.luggage"),
-      href: `/point/${pointId}/luggage/`,
-      icon: Luggage,
-    },
+    ...(allowed.has("keys")
+      ? [
+          {
+            key: "safes",
+            label: t("pointHub.sections.safes"),
+            href: `/point/${pointId}/safes/`,
+            icon: Lock,
+          },
+        ]
+      : []),
+    ...(allowed.has("luggage")
+      ? [
+          {
+            key: "luggage",
+            label: t("pointHub.sections.luggage"),
+            href: `/point/${pointId}/luggage/`,
+            icon: Luggage,
+          },
+        ]
+      : []),
     {
       key: "statistics",
       label: t("pointHub.sections.statistics"),
       href: `/point/${pointId}/statistics/`,
       icon: BarChart3,
     },
-  ] as const;
-
-  const { data: points } = useQuery({
-    queryKey: ["operator", "points"],
-    queryFn: () => api.get<PointListItem[]>("points"),
-  });
-  const point = points?.find((p) => p.id === pointId);
+  ];
 
   const { data: dashboard, isLoading, error } = useQuery({
     queryKey: ["operator", "dashboard"],
