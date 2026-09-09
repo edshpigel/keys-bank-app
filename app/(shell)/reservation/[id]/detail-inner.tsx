@@ -2,9 +2,7 @@
 
 import { Alert, Spinner } from "@heroui/react";
 import {
-  CheckCircle2,
   ChevronRight,
-  CreditCard,
   KeyRound,
   Luggage,
   Vault,
@@ -14,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
 import { ReservationActionsPanel } from "@/components/reservation-actions-panel";
+import { ReservationActivityList } from "@/components/reservation-activity-list";
 import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { api, type PointListItem, type ReservationDetail } from "@/lib/api";
@@ -205,52 +204,10 @@ export default function ReservationDetailInner() {
 
           <div className="space-y-2">
             <SectionLabel>{t("reservation.sectionActivity")}</SectionLabel>
-            <SoftCard padding="none">
-              <ul>
-                {data.payments.map((payment) => (
-                  <li
-                    key={payment.id}
-                    className="flex items-start gap-2.5 border-b border-brand-border px-3.5 py-2.5 last:border-b-0"
-                  >
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-cream">
-                      <CreditCard className="h-3.5 w-3.5 text-brand-gold-dark" strokeWidth={2} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-medium text-brand-text">
-                        {payment.status === "refunded"
-                          ? t("reservation.activityRefund")
-                          : t("reservation.activityPayment")}
-                      </div>
-                      <div className="text-[11px] text-brand-text-muted">
-                        {formatMoney(payment.amount_ttc_cents, "EUR", locale)}
-                        {" · "}
-                        {payment.kind}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-                {data.takeout_at ? (
-                  <li className="flex items-start gap-2.5 border-b border-brand-border px-3.5 py-2.5 last:border-b-0">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-[#2D8A4E]" strokeWidth={2} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-medium text-brand-text">
-                        {t("reservation.activityTakenOut")}
-                      </div>
-                      <div className="text-[11px] text-brand-text-muted">
-                        {formatDateTime(data.takeout_at, locale, point?.timezone)}
-                      </div>
-                    </div>
-                  </li>
-                ) : null}
-                {data.payments.length === 0 && !data.takeout_at ? (
-                  <li className="px-3.5 py-4 text-center text-sm text-brand-text-muted">
-                    {t("reservation.activityEmpty")}
-                  </li>
-                ) : null}
-              </ul>
-            </SoftCard>
+            <ReservationActivityList
+              reservationId={reservationId}
+              timeZone={point?.timezone}
+            />
           </div>
 
           <ReservationActionsPanel

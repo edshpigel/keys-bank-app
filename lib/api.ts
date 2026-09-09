@@ -231,6 +231,7 @@ export type ReservationListItem = {
   phone_e164: string | null;
   first_name: string | null;
   last_name: string | null;
+  user_id?: string | null;
   starts_at: string;
   ends_at: string;
   created_at: string | null;
@@ -252,6 +253,25 @@ export type ReservationsListResponse = {
     active: number;
     revenue_ttc_cents: number;
   } | null;
+};
+
+export type ReservationActivityItem = {
+  id: string;
+  type: string;
+  at: string | null;
+  title_key: string;
+  subtitle: string | null;
+  amount_cents: number | null;
+  unit_label: string | null;
+  channel: string | null;
+  expandable: boolean;
+  body_preview: string | null;
+  meta: Record<string, unknown>;
+  source: string;
+};
+
+export type ReservationActivityResponse = {
+  items: ReservationActivityItem[];
 };
 
 export type ReservationDetail = ReservationListItem & {
