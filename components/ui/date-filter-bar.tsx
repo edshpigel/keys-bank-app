@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { CalendarDate, type DateValue } from "@internationalized/date";
 import { RangeCalendar } from "@heroui/react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/cn";
 import { useT } from "@/lib/i18n-provider";
@@ -51,6 +52,7 @@ export function DateFilterBar({
 }: DateFilterBarProps) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const initialRange = useMemo(() => {
     const from = parseIsoDay(fromValue) ?? todayCalendarDate();
     const to = parseIsoDay(toValue) ?? from;
@@ -59,9 +61,22 @@ export function DateFilterBar({
   const [draft, setDraft] = useState(initialRange);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     setDraft(initialRange);
   }, [open, initialRange]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   const presets: Array<{ key: DatePreset; label: string }> = [
     { key: "all", label: t("reservations.dateAllShort") },
@@ -72,6 +87,88 @@ export function DateFilterBar({
 
   const isRange = Boolean(dateToLabel && dateToLabel !== dateFromLabel);
   const canApply = Boolean(draft.start && draft.end);
+
+  const dialog =
+    open && mounted
+      ? createPortal(
+          <div className="fixed inset-0 z-[10050] flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
+            <button
+              type="button"
+              className="absolute inset-0"
+              aria-label={t("common.back")}
+              onClick={() => setOpen(false)}
+              data-overlay
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              className="safe-bottom relative z-10 w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
+            >
+              <h2 className="text-lg font-semibold text-brand-text">
+                {t("reservations.dateRangeTitle")}
+              </h2>
+              <p className="mt-1 text-sm text-brand-text-muted">
+                {t("reservations.dateRangeHint")}
+              </p>
+
+              <div className="mt-4 flex justify-center">
+                <RangeCalendar
+                  aria-label={t("reservations.dateRangeTitle")}
+                  value={draft}
+                  onChange={(next) => {
+                    if (!next?.start || !next?.end) return;
+                    setDraft({ start: next.start, end: next.end });
+                  }}
+                  className="w-full max-w-[320px]"
+                >
+                  <RangeCalendar.Header className="mb-2 flex items-center justify-between gap-2">
+                    <RangeCalendar.Heading className="text-sm font-semibold text-brand-text" />
+                    <div className="flex items-center gap-1">
+                      <RangeCalendar.NavButton slot="previous" />
+                      <RangeCalendar.NavButton slot="next" />
+                    </div>
+                  </RangeCalendar.Header>
+                  <RangeCalendar.Grid className="w-full">
+                    <RangeCalendar.GridHeader>
+                      {(day) => (
+                        <RangeCalendar.HeaderCell className="text-[11px] text-brand-text-muted">
+                          {day}
+                        </RangeCalendar.HeaderCell>
+                      )}
+                    </RangeCalendar.GridHeader>
+                    <RangeCalendar.GridBody>
+                      {(date) => <RangeCalendar.Cell date={date} />}
+                    </RangeCalendar.GridBody>
+                  </RangeCalendar.Grid>
+                </RangeCalendar>
+              </div>
+
+              <div className="mt-5 flex gap-2">
+                <button
+                  type="button"
+                  className="h-11 flex-1 rounded-[12px] border border-brand-border bg-white text-sm font-semibold text-brand-text"
+                  onClick={() => setOpen(false)}
+                >
+                  {t("reservation.cancel")}
+                </button>
+                <button
+                  type="button"
+                  className="h-11 flex-1 rounded-[12px] bg-brand-gold text-sm font-semibold text-white disabled:opacity-50"
+                  disabled={!canApply}
+                  onClick={() => {
+                    if (!draft.start || !draft.end) return;
+                    onApplyCustomRange(toIsoDay(draft.start), toIsoDay(draft.end));
+                    setOpen(false);
+                  }}
+                >
+                  {t("reservations.dateApply")}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <>
@@ -121,84 +218,7 @@ export function DateFilterBar({
           })}
         </div>
       </div>
-
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
-          <button
-            type="button"
-            className="absolute inset-0"
-            aria-label={t("common.back")}
-            onClick={() => setOpen(false)}
-            data-overlay
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="safe-bottom relative z-10 w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
-          >
-            <h2 className="text-lg font-semibold text-brand-text">
-              {t("reservations.dateRangeTitle")}
-            </h2>
-            <p className="mt-1 text-sm text-brand-text-muted">
-              {t("reservations.dateRangeHint")}
-            </p>
-
-            <div className="mt-4 flex justify-center">
-              <RangeCalendar
-                aria-label={t("reservations.dateRangeTitle")}
-                value={draft}
-                onChange={(next) => {
-                  if (!next?.start || !next?.end) return;
-                  setDraft({ start: next.start, end: next.end });
-                }}
-                className="w-full max-w-[320px]"
-              >
-                <RangeCalendar.Header className="mb-2 flex items-center justify-between gap-2">
-                  <RangeCalendar.Heading className="text-sm font-semibold text-brand-text" />
-                  <div className="flex items-center gap-1">
-                    <RangeCalendar.NavButton slot="previous" />
-                    <RangeCalendar.NavButton slot="next" />
-                  </div>
-                </RangeCalendar.Header>
-                <RangeCalendar.Grid className="w-full">
-                  <RangeCalendar.GridHeader>
-                    {(day) => (
-                      <RangeCalendar.HeaderCell className="text-[11px] text-brand-text-muted">
-                        {day}
-                      </RangeCalendar.HeaderCell>
-                    )}
-                  </RangeCalendar.GridHeader>
-                  <RangeCalendar.GridBody>
-                    {(date) => <RangeCalendar.Cell date={date} />}
-                  </RangeCalendar.GridBody>
-                </RangeCalendar.Grid>
-              </RangeCalendar>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                className="h-11 flex-1 rounded-[12px] border border-brand-border bg-white text-sm font-semibold text-brand-text"
-                onClick={() => setOpen(false)}
-              >
-                {t("reservation.cancel")}
-              </button>
-              <button
-                type="button"
-                className="h-11 flex-1 rounded-[12px] bg-brand-gold text-sm font-semibold text-white disabled:opacity-50"
-                disabled={!canApply}
-                onClick={() => {
-                  if (!draft.start || !draft.end) return;
-                  onApplyCustomRange(toIsoDay(draft.start), toIsoDay(draft.end));
-                  setOpen(false);
-                }}
-              >
-                {t("reservations.dateApply")}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {dialog}
     </>
   );
 }
