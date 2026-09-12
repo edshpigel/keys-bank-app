@@ -99,10 +99,12 @@ export function filterReservations(
       if (!expired) return false;
     }
     if (!q) return true;
-    const name = `${item.first_name || ""} ${item.last_name || ""}`;
+    const name = `${item.first_name || ""} ${item.last_name || ""}`.toLowerCase();
+    const nameRev = `${item.last_name || ""} ${item.first_name || ""}`.toLowerCase();
     const hay =
-      `${item.public_id} ${item.email} ${item.phone_e164 || ""} ${name} ${item.safe_label || ""}`.toLowerCase();
-    return hay.includes(q);
+      `${item.public_id} ${item.email} ${item.phone_e164 || ""} ${name} ${nameRev} ${item.safe_label || ""} ${item.ttlock_passcode || ""}`.toLowerCase();
+    const tokens = q.replace(/#/g, " ").split(/\s+/).filter(Boolean);
+    return tokens.every((token) => hay.includes(token));
   });
 }
 
