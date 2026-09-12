@@ -239,6 +239,7 @@ export type ReservationListItem = {
   safe_label: string | null;
   locker_qty: number | null;
   ttlock_passcode: string | null;
+  safe_mechanical_code?: string | null;
   auto_renew_enabled: boolean;
   takeout_at: string | null;
   amount_ttc_cents: number;

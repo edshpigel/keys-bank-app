@@ -122,32 +122,50 @@ export function ReservationCard({ item, pointId, timeZone }: Props) {
       </div>
 
       {labels.length > 0 ? (
-        <div className="relative z-10 flex flex-wrap items-center gap-1.5 pointer-events-none">
-          <span className="text-[11px] font-semibold text-brand-text-muted">
-            {isLuggage ? t("reservation.lockers") : t("reservation.safes")}
-          </span>
-          {labels.map((label) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-0.5 rounded-md border border-brand-border bg-white px-1.5 py-0.5 text-[11px] font-medium text-brand-text"
-            >
-              <Vault className="h-2.5 w-2.5 text-brand-text-muted" strokeWidth={2} />
-              {label.startsWith("#") ? label : `#${label}`}
+        <div className="relative z-10 flex flex-col gap-1.5 pointer-events-none">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-brand-text-muted">
+              {isLuggage ? t("reservation.lockers") : t("reservation.safes")}
             </span>
-          ))}
+            {labels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-0.5 rounded-md border border-brand-border bg-white px-1.5 py-0.5 text-[11px] font-medium text-brand-text"
+              >
+                <Vault className="h-2.5 w-2.5 text-brand-text-muted" strokeWidth={2} />
+                {label.startsWith("#") ? label : `#${label}`}
+              </span>
+            ))}
+          </div>
+          {!isLuggage && item.safe_mechanical_code ? (
+            <div className="text-xs font-semibold text-brand-text">
+              <span className="text-brand-text-muted">{t("reservation.safeCode")}: </span>
+              {item.safe_mechanical_code}
+            </div>
+          ) : null}
           {!isLuggage && item.ttlock_passcode ? (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-text">
+            <div className="flex items-center gap-1 text-xs font-semibold text-brand-text">
               <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
+              <span className="text-brand-text-muted">{t("reservation.passcode")}: </span>
               {formatTtlockPasscode(item.ttlock_passcode)}
-            </span>
+            </div>
           ) : null}
         </div>
-      ) : !isLuggage && item.ttlock_passcode ? (
-        <div className="relative z-10 flex items-center gap-1.5 pointer-events-none">
-          <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
-          <span className="text-xs font-semibold text-brand-text">
-            {formatTtlockPasscode(item.ttlock_passcode)}
-          </span>
+      ) : !isLuggage && (item.safe_mechanical_code || item.ttlock_passcode) ? (
+        <div className="relative z-10 flex flex-col gap-1 pointer-events-none">
+          {item.safe_mechanical_code ? (
+            <div className="text-xs font-semibold text-brand-text">
+              <span className="text-brand-text-muted">{t("reservation.safeCode")}: </span>
+              {item.safe_mechanical_code}
+            </div>
+          ) : null}
+          {item.ttlock_passcode ? (
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-text">
+              <KeyRound className="h-3 w-3 text-brand-text-muted" strokeWidth={2} />
+              <span className="text-brand-text-muted">{t("reservation.passcode")}: </span>
+              {formatTtlockPasscode(item.ttlock_passcode)}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

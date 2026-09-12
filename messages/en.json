@@ -125,6 +125,7 @@
     "safes": "Safes",
     "lockers": "Lockers",
     "passcode": "TTLock passcode",
+    "safeCode": "Safe code",
     "payments": "Payments",
     "loadError": "Could not load reservation",
     "serviceKeys": "Keys",

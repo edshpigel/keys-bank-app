@@ -191,6 +191,13 @@ export default function ReservationDetailInner() {
                 </div>
               ) : null}
 
+              {data.safe_mechanical_code ? (
+                <div className="flex items-center justify-between rounded-[10px] bg-brand-cream px-3 py-2.5">
+                  <span className="text-[11px] text-brand-text-muted">{t("reservation.safeCode")}</span>
+                  <span className="text-lg font-bold text-brand-text">{data.safe_mechanical_code}</span>
+                </div>
+              ) : null}
+
               {data.ttlock_passcode ? (
                 <div className="flex items-center justify-between rounded-[10px] bg-brand-header px-3 py-2.5">
                   <span className="text-[11px] text-white/50">{t("reservation.passcode")}</span>
