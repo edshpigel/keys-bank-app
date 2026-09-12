@@ -1,13 +1,21 @@
 "use client";
 
 import { Button, Spinner } from "@heroui/react";
+import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { ApiError, api, type LockActionItem, type LuggageGridItem, type ReservationsListResponse } from "@/lib/api";
+import {
+  ApiError,
+  api,
+  type LockActionItem,
+  type LuggageGridItem,
+  type ReservationsListResponse,
+  type UnitReservationItem,
+} from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { idempotencyKey } from "@/lib/idempotency";
-import { canOccupyLocker } from "@/lib/luggage";
+import { canOccupyLocker, luggageHistoryLabel, luggageStateLabel } from "@/lib/luggage";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
 
@@ -20,6 +28,8 @@ type Props = {
   onActionDone: () => void;
 };
 
+type MainTab = "orders" | "history";
+
 export function LuggageLockSheet({
   open,
   lock,
@@ -30,13 +40,21 @@ export function LuggageLockSheet({
 }: Props) {
   const t = useT();
   const { locale } = useI18n();
+  const [mainTab, setMainTab] = useState<MainTab>("orders");
   const [reservationId, setReservationId] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     setReservationId("");
     setMessage(null);
+    setMainTab("orders");
   }, [lock?.unit_id]);
+
+  const { data: unitOrders } = useQuery({
+    queryKey: ["operator", "unit-reservations", lock?.unit_id],
+    queryFn: () => api.get<UnitReservationItem[]>(`units/${lock!.unit_id}/reservations`),
+    enabled: open && Boolean(lock?.unit_id),
+  });
 
   const { data: reservations } = useQuery({
     queryKey: ["operator", "luggage-reservations", pointId],
@@ -59,9 +77,13 @@ export function LuggageLockSheet({
     enabled: open && Boolean(pointId),
   });
 
-  const unitHistory = (lockActions ?? [])
-    .filter((row) => row.unit_id === lock?.unit_id)
-    .slice(0, 8);
+  const unitHistory = useMemo(
+    () =>
+      (lockActions ?? [])
+        .filter((row) => row.unit_id === lock?.unit_id)
+        .slice(0, 40),
+    [lockActions, lock?.unit_id],
+  );
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -92,6 +114,8 @@ export function LuggageLockSheet({
   if (!open || !lock) return null;
 
   const showOccupy = canOccupyLocker(lock);
+  const statusText = luggageStateLabel(lock, t);
+  const statusMeta = lock.api_stateno ? `${statusText} (stateno=${lock.api_stateno})` : statusText;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
@@ -100,43 +124,145 @@ export function LuggageLockSheet({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-10 w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl",
-          "safe-bottom max-h-[88dvh] overflow-y-auto",
+          "relative z-10 flex w-full max-w-md flex-col rounded-t-2xl bg-white shadow-xl",
+          "safe-bottom max-h-[88dvh]",
         )}
       >
-        <h2 className="text-lg font-semibold">{t("luggage.sheetTitle", { label: lock.label })}</h2>
-        {lock.fixno || lock.lockno ? (
-          <p className="mt-1 text-xs text-brand-text-muted">
-            {[lock.fixno, lock.lockno].filter(Boolean).join(" · ")}
-          </p>
-        ) : null}
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-brand-border" aria-hidden />
 
-        {message ? (
-          <p
-            className={cn(
-              "mt-3 rounded-lg px-3 py-2 text-sm",
-              message.kind === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800",
-            )}
-          >
-            {message.text}
-          </p>
-        ) : null}
+        <div className="overflow-y-auto px-5 pb-4 pt-3">
+          <h2 className="text-center text-lg font-bold text-brand-text">
+            {t("luggage.sheetTitle", { label: lock.label })}
+          </h2>
+          <p className="mt-1 text-center text-sm text-brand-text-muted">{statusMeta}</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+          {message ? (
+            <p
+              className={cn(
+                "mt-3 rounded-lg px-3 py-2 text-sm",
+                message.kind === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800",
+              )}
+            >
+              {message.text}
+            </p>
+          ) : null}
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              className={cn(
+                "h-10 rounded-full border text-sm font-semibold transition",
+                mainTab === "orders"
+                  ? "border-transparent bg-brand-gold text-white"
+                  : "border-brand-border bg-white text-brand-text",
+              )}
+              onClick={() => setMainTab("orders")}
+            >
+              {t("luggage.tabOrders")}
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "h-10 rounded-full border text-sm font-semibold transition",
+                mainTab === "history"
+                  ? "border-transparent bg-brand-gold text-white"
+                  : "border-brand-border bg-white text-brand-text",
+              )}
+              onClick={() => setMainTab("history")}
+            >
+              {t("luggage.tabHistory")}
+            </button>
+          </div>
+
+          {mainTab === "orders" ? (
+            <div className="mt-4 space-y-3">
+              {(unitOrders ?? []).length === 0 ? (
+                <p className="py-4 text-center text-sm text-brand-text-muted">{t("luggage.ordersEmpty")}</p>
+              ) : (
+                <ul className="space-y-2">
+                  {(unitOrders ?? []).map((row) => (
+                    <li key={row.id}>
+                      <Link
+                        href={`/reservation/${row.id}/?point=${pointId}`}
+                        className="block rounded-[14px] border border-brand-border bg-brand-cream px-3.5 py-3 active:scale-[0.99]"
+                      >
+                        <div className="font-semibold text-brand-text">#{row.public_id}</div>
+                        <div className="mt-0.5 text-sm capitalize text-brand-text-muted">
+                          {t(`lifecycle.${row.lifecycle}`)} · {t(`status.${row.status}`)}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {showOccupy ? (
+                <div className="space-y-2 border-t border-brand-border pt-3">
+                  <label className="block text-sm font-medium text-brand-text-muted">
+                    {t("luggage.occupySelect")}
+                  </label>
+                  {luggageBookings.length === 0 ? (
+                    <p className="text-sm text-brand-text-muted">{t("luggage.occupyNoBooking")}</p>
+                  ) : (
+                    <select
+                      className="h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm"
+                      value={reservationId}
+                      onChange={(e) => setReservationId(e.target.value)}
+                    >
+                      <option value="">{t("luggage.occupyPlaceholder")}</option>
+                      {luggageBookings.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          #{r.public_id} · {r.email}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <Button
+                    variant="primary"
+                    className="h-11 w-full bg-brand-gold text-white"
+                    isDisabled={mutation.isPending || !reservationId}
+                    onPress={() => {
+                      setMessage(null);
+                      mutation.mutate({ action: "occupy", reservation_id: reservationId });
+                    }}
+                  >
+                    {mutation.isPending ? t("common.loading") : t("luggage.occupy")}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-4">
+              {unitHistory.length === 0 ? (
+                <p className="py-4 text-center text-sm text-brand-text-muted">{t("luggage.historyEmpty")}</p>
+              ) : (
+                <ul className="space-y-2">
+                  {unitHistory.map((row) => (
+                    <li key={row.id} className="rounded-xl bg-[#f3f3f3] px-3.5 py-3">
+                      <div className="text-xs text-brand-text-muted">
+                        {row.created_at ? formatDateTime(row.created_at, locale, timeZone) : "—"}
+                      </div>
+                      <div className="mt-1 text-sm font-medium text-brand-text">
+                        {luggageHistoryLabel(row.action, t, row.reservation_public_id)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {mutation.isPending ? (
+            <div className="mt-3 flex justify-center">
+              <Spinner size="sm" className="text-brand-gold" />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="shrink-0 space-y-2 border-t border-brand-border px-5 py-4">
           <Button
             variant="secondary"
-            className="h-11"
-            isDisabled={mutation.isPending}
-            onPress={() => {
-              setMessage(null);
-              mutation.mutate({ action: "open" });
-            }}
-          >
-            {t("luggage.open")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-11"
+            className="h-12 w-full border-brand-text font-semibold"
             isDisabled={mutation.isPending}
             onPress={() => {
               setMessage(null);
@@ -145,70 +271,18 @@ export function LuggageLockSheet({
           >
             {t("luggage.clear")}
           </Button>
+          <Button
+            variant="primary"
+            className="h-12 w-full bg-brand-gold font-semibold text-white"
+            isDisabled={mutation.isPending}
+            onPress={() => {
+              setMessage(null);
+              mutation.mutate({ action: "open" });
+            }}
+          >
+            {t("luggage.open")}
+          </Button>
         </div>
-
-        {showOccupy ? (
-          <div className="mt-4 space-y-2">
-            <label className="block text-sm font-medium text-brand-text-muted">
-              {t("luggage.occupySelect")}
-            </label>
-            {luggageBookings.length === 0 ? (
-              <p className="text-sm text-brand-text-muted">{t("luggage.occupyNoBooking")}</p>
-            ) : (
-              <select
-                className="h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm"
-                value={reservationId}
-                onChange={(e) => setReservationId(e.target.value)}
-              >
-                <option value="">{t("luggage.occupyPlaceholder")}</option>
-                {luggageBookings.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    #{r.public_id} · {r.email}
-                  </option>
-                ))}
-              </select>
-            )}
-            <Button
-              variant="primary"
-              className="h-11 w-full bg-brand-gold text-white"
-              isDisabled={mutation.isPending || !reservationId}
-              onPress={() => {
-                setMessage(null);
-                mutation.mutate({ action: "occupy", reservation_id: reservationId });
-              }}
-            >
-              {mutation.isPending ? t("common.loading") : t("luggage.occupy")}
-            </Button>
-          </div>
-        ) : null}
-
-        {mutation.isPending ? (
-          <div className="mt-3 flex justify-center">
-            <Spinner size="sm" className="text-brand-gold" />
-          </div>
-        ) : null}
-
-        <div className="mt-5 border-t border-brand-border pt-4">
-          <h3 className="mb-2 text-sm font-semibold text-brand-text-muted">{t("luggage.historyTitle")}</h3>
-          {unitHistory.length === 0 ? (
-            <p className="text-sm text-brand-text-muted">{t("luggage.historyEmpty")}</p>
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {unitHistory.map((row) => (
-                <li key={row.id} className="rounded-lg bg-brand-cream px-3 py-2">
-                  <div className="font-medium capitalize">{row.action}</div>
-                  <div className="text-xs text-brand-text-muted">
-                    {row.created_at ? formatDateTime(row.created_at, locale, timeZone) : "—"}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <Button variant="ghost" className="mt-4 w-full" onPress={onClose}>
-          {t("reservation.cancel")}
-        </Button>
       </div>
     </div>
   );

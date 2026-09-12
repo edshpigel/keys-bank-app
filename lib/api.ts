@@ -341,10 +341,37 @@ export type LuggageGridItem = {
   lockno: string | null;
 };
 
+export type LuggageGridCell = {
+  row: number;
+  col: number;
+  grid_col: number;
+  kind: "lock" | "screen" | string;
+  title?: string;
+  label?: string;
+  mapped?: boolean;
+  item?: {
+    id?: string;
+    label?: string;
+    api_stateno?: string;
+    stateno?: string;
+  } | null;
+};
+
+export type LuggageGridResponse = {
+  items: LuggageGridItem[];
+  grid: {
+    layout_id: string;
+    layout_title?: string;
+    cells: LuggageGridCell[];
+    extra_items?: LuggageGridItem[];
+  };
+};
+
 export type LockActionItem = {
   id: string;
   unit_id: string | null;
   reservation_id: string | null;
+  reservation_public_id?: string | null;
   action: string;
   created_at: string | null;
 };

@@ -9,18 +9,34 @@ export function luggageStateLabel(item: LuggageGridItem, t: (k: string) => strin
   return t("luggage.free");
 }
 
-export function luggageCellClass(item: LuggageGridItem): string {
+/** Dot colors match lk-keysbank: 1 green / 2 amber / 3 red. */
+export function luggageDotClass(item: LuggageGridItem): string {
   const stateno = String(item.api_stateno ?? "").trim();
-  if (stateno === "2" || item.busy) {
-    return "border-red-200 bg-red-50 text-red-900";
-  }
-  if (stateno === "3") {
-    return "border-amber-300 bg-amber-50 text-amber-900";
-  }
-  return "border-emerald-200 bg-emerald-50 text-emerald-900";
+  if (stateno === "1") return "bg-[#2fb45a]";
+  if (stateno === "2") return "bg-[#e8a020]";
+  if (stateno === "3") return "bg-[#e14343]";
+  if (item.busy) return "bg-[#e14343]";
+  return "bg-[#9aa0a6]";
 }
 
 export function canOccupyLocker(item: LuggageGridItem): boolean {
   const stateno = String(item.api_stateno ?? "").trim();
-  return !item.busy && stateno !== "2";
+  return !item.busy && stateno !== "2" && stateno !== "3";
+}
+
+export function luggageHistoryLabel(
+  action: string,
+  t: (k: string, vars?: Record<string, string | number>) => string,
+  publicId?: string | null,
+): string {
+  const key = (action || "").trim().toLowerCase();
+  if (key === "occupy") return t("luggage.historyOccupied");
+  if (key === "open" || key === "unlock") {
+    if (publicId) return t("luggage.historyOpened", { id: publicId });
+    return t("luggage.historyOpenedGeneric");
+  }
+  if (key === "clear" || key === "takeout" || key === "take_out") {
+    return t("luggage.historyTakenOut");
+  }
+  return action;
 }
