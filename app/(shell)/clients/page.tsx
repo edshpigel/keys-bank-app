@@ -9,7 +9,7 @@ import { AppHeader } from "@/components/app-header";
 import { ListRow } from "@/components/list-row";
 import { api } from "@/lib/api";
 import type { ClientListItem } from "@/lib/clients";
-import { clientDisplayName, formatDateShort } from "@/lib/format";
+import { clientDisplayName, clientInitials, formatDateShort } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 
 export default function ClientsPage() {
@@ -62,6 +62,7 @@ export default function ClientsPage() {
         <ul className="flex flex-col gap-2.5 pb-2">
           {items.map((item) => {
             const name = clientDisplayName(item.first_name, item.last_name, item.email);
+            const initials = clientInitials(item.first_name, item.last_name, item.email);
             const subtitle = [
               item.email,
               t("clients.bookingsCount", { count: item.reservations_count }),
@@ -77,6 +78,11 @@ export default function ClientsPage() {
                   href={`/clients/${encodeURIComponent(item.ref)}/`}
                   title={name}
                   subtitle={subtitle}
+                  leading={
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gold text-sm font-semibold text-white">
+                      {initials}
+                    </div>
+                  }
                 />
               </li>
             );

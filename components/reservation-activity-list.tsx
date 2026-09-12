@@ -22,18 +22,25 @@ import { cn } from "@/lib/cn";
 
 function activityIcon(type: string) {
   if (type.startsWith("payment.")) return CreditCard;
-  if (type.startsWith("notify.email")) return Mail;
-  if (type.startsWith("notify.sms")) return MessageSquare;
-  if (type === "access.passcode_synced") return KeyRound;
+  if (type.startsWith("notify.email") || type === "operator.resend_email" || type === "operator.custom_email") {
+    return Mail;
+  }
+  if (type.startsWith("notify.sms") || type === "operator.resend_sms" || type === "operator.custom_sms") {
+    return MessageSquare;
+  }
+  if (type === "access.passcode_synced" || type === "operator.ttlock_refresh") return KeyRound;
   if (type === "access.lock_opened") return Unlock;
   if (type === "hardware.action") return Wrench;
-  if (type.startsWith("lifecycle.")) return CheckCircle2;
+  if (type === "operator.cancel_auto_renew") return CheckCircle2;
+  if (type.startsWith("lifecycle.") || type.startsWith("operator.")) return CheckCircle2;
   return CreditCard;
 }
 
 function activityIconTone(type: string) {
   if (type === "lifecycle.takeout") return "bg-[#E8F5EC] text-[#2D8A4E]";
   if (type === "access.lock_opened") return "bg-[#E8F0FA] text-[#3B6EA5]";
+  if (type === "operator.cancel_auto_renew") return "bg-[#FCE8E6] text-[#B42318]";
+  if (type.startsWith("operator.")) return "bg-brand-cream text-brand-gold-dark";
   if (type.startsWith("notify.")) return "bg-brand-cream text-brand-gold-dark";
   return "bg-brand-cream text-brand-gold-dark";
 }

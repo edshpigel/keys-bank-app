@@ -269,6 +269,7 @@ export type ReservationActivityItem = {
   body_preview: string | null;
   meta: Record<string, unknown>;
   source: string;
+  actor_email?: string | null;
 };
 
 export type ReservationActivityResponse = {

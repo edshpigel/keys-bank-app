@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -7,10 +8,11 @@ type ListRowProps = {
   href: string;
   title: string;
   subtitle?: string;
+  leading?: ReactNode;
   className?: string;
 };
 
-export function ListRow({ href, title, subtitle, className }: ListRowProps) {
+export function ListRow({ href, title, subtitle, leading, className }: ListRowProps) {
   return (
     <Link
       href={href}
@@ -19,6 +21,7 @@ export function ListRow({ href, title, subtitle, className }: ListRowProps) {
         className,
       )}
     >
+      {leading ? <div className="shrink-0">{leading}</div> : null}
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold leading-snug text-brand-text">{title}</div>
         {subtitle ? (
