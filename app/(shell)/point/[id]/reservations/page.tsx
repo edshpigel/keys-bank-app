@@ -2,8 +2,9 @@
 
 import { Alert, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { Virtuoso } from "react-virtuoso";
 
 import { AppHeader } from "@/components/app-header";
 import { ReservationCard } from "@/components/reservation-card";
@@ -13,6 +14,7 @@ import { SoftCard } from "@/components/ui/soft-card";
 import {
   api,
   type PointListItem,
+  type ReservationListItem,
   type ReservationsListResponse,
 } from "@/lib/api";
 import { formatCompactMoney, formatDateShort } from "@/lib/format";
@@ -23,6 +25,7 @@ import {
   type ReservationFilters,
 } from "@/lib/reservations";
 import { ShellStickyBar } from "@/lib/shell-sticky";
+import { useVirtuosoLoadMore } from "@/lib/use-virtuoso-load-more";
 
 const PAGE_SIZE = 30;
 
@@ -39,7 +42,6 @@ export default function PointReservationsPage() {
   });
   const [dateRange, setDateRange] = useState(() => buildDateRange("all"));
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(filters.query.trim()), 300);
@@ -98,22 +100,11 @@ export default function PointReservationsPage() {
     return { total: 0, active: 0, revenue: 0 };
   }, [listQuery.data]);
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = listQuery;
-
-  useEffect(() => {
-    const node = loadMoreRef.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return;
-        if (!hasNextPage || isFetchingNextPage) return;
-        void fetchNextPage();
-      },
-      { rootMargin: "240px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, items.length]);
+  const onEndReached = useVirtuosoLoadMore(
+    listQuery.hasNextPage,
+    listQuery.isFetchingNextPage,
+    listQuery.fetchNextPage,
+  );
 
   const dateFromLabel =
     dateRange.preset === "all"
@@ -169,27 +160,34 @@ export default function PointReservationsPage() {
 
       {error ? <Alert status="danger">{t("reservations.loadError")}</Alert> : null}
 
-      {!isLoading && !error ? (
-        <ul className="space-y-2.5 pb-2">
-          {items.map((item) => (
-            <li key={item.id}>
-              <ReservationCard item={item} pointId={pointId} timeZone={point?.timezone} />
-            </li>
-          ))}
-          {items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-brand-text-muted">
-              {t("reservations.empty")}
-            </p>
-          ) : null}
-        </ul>
+      {!isLoading && !error && items.length === 0 ? (
+        <p className="py-8 text-center text-sm text-brand-text-muted">{t("reservations.empty")}</p>
       ) : null}
 
-      <div ref={loadMoreRef} className="h-4 w-full" aria-hidden />
-
-      {listQuery.isFetchingNextPage ? (
-        <div className="flex justify-center py-3">
-          <Spinner size="sm" className="text-brand-gold" />
-        </div>
+      {!isLoading && !error && items.length > 0 ? (
+        <Virtuoso
+          useWindowScroll
+          data={items}
+          overscan={400}
+          increaseViewportBy={{ top: 200, bottom: 400 }}
+          endReached={onEndReached}
+          computeItemKey={(_index, item: ReservationListItem) => item.id}
+          itemContent={(_index, item) => (
+            <div className="pb-2.5">
+              <ReservationCard item={item} pointId={pointId} timeZone={point?.timezone} />
+            </div>
+          )}
+          components={{
+            Footer: () =>
+              listQuery.isFetchingNextPage ? (
+                <div className="flex justify-center py-3">
+                  <Spinner size="sm" className="text-brand-gold" />
+                </div>
+              ) : (
+                <div className="h-2" aria-hidden />
+              ),
+          }}
+        />
       ) : null}
 
       {isFetching ? (
