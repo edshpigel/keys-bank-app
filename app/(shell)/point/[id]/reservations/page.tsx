@@ -11,6 +11,7 @@ import { ReservationCard } from "@/components/reservation-card";
 import { ReservationListFilters } from "@/components/reservation-list-filters";
 import { DateFilterBar } from "@/components/ui/date-filter-bar";
 import { SoftCard } from "@/components/ui/soft-card";
+import { InfiniteLoadFooter } from "@/components/ui/infinite-load-footer";
 import {
   api,
   type PointListItem,
@@ -165,29 +166,26 @@ export default function PointReservationsPage() {
       ) : null}
 
       {!isLoading && !error && items.length > 0 ? (
-        <Virtuoso
-          useWindowScroll
-          data={items}
-          overscan={400}
-          increaseViewportBy={{ top: 200, bottom: 400 }}
-          endReached={onEndReached}
-          computeItemKey={(_index, item: ReservationListItem) => item.id}
-          itemContent={(_index, item) => (
-            <div className="pb-2.5">
-              <ReservationCard item={item} pointId={pointId} timeZone={point?.timezone} />
-            </div>
-          )}
-          components={{
-            Footer: () =>
-              listQuery.isFetchingNextPage ? (
-                <div className="flex justify-center py-3">
-                  <Spinner size="sm" className="text-brand-gold" />
-                </div>
-              ) : (
-                <div className="h-2" aria-hidden />
-              ),
-          }}
-        />
+        <>
+          <Virtuoso
+            useWindowScroll
+            data={items}
+            overscan={400}
+            increaseViewportBy={{ top: 200, bottom: 400 }}
+            endReached={onEndReached}
+            computeItemKey={(_index, item: ReservationListItem) => item.id}
+            itemContent={(_index, item) => (
+              <div className="pb-2.5">
+                <ReservationCard item={item} pointId={pointId} timeZone={point?.timezone} />
+              </div>
+            )}
+          />
+          <InfiniteLoadFooter
+            hasNextPage={Boolean(listQuery.hasNextPage)}
+            isFetchingNextPage={listQuery.isFetchingNextPage}
+            fetchNextPage={listQuery.fetchNextPage}
+          />
+        </>
       ) : null}
 
       {isFetching ? (
