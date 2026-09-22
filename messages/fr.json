@@ -62,7 +62,10 @@
     "empty": "Aucun client trouvé",
     "loadError": "Impossible de charger les clients",
     "bookingsCount": "{count} réservations",
-    "noBookings": "Aucune réservation"
+    "noBookings": "Aucune réservation",
+    "sectionBookings": "Réservations",
+    "sectionActivity": "Activité",
+    "activityEmpty": "Aucune activité"
   },
   "pointHub": {
     "titleFallback": "Point",
@@ -152,6 +155,7 @@
     "activityManualExtend": "Prolongation manuelle",
     "activityStatus": "Changement de statut",
     "activityTakenOut": "Statut → Retiré",
+    "activityDeposit": "Bagages déposés",
     "activityTtlockRefresh": "Mise à jour TTLock",
     "activityResendEmail": "Renvoyer l'email",
     "activityResendSms": "Renvoyer le SMS",

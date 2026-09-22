@@ -1,4 +1,4 @@
-import type { ReservationListItem } from "@/lib/api";
+import type { ReservationActivityItem, ReservationListItem } from "@/lib/api";
 
 function toBase64Url(text: string): string {
   if (typeof window === "undefined") {
@@ -35,6 +35,11 @@ export type ClientListItem = {
   last_starts_at: string | null;
 };
 
+export type ClientActivityItem = ReservationActivityItem & {
+  reservation_id?: string | null;
+  public_id?: string | number | null;
+};
+
 export type ClientDetailResponse = {
   client: ClientListItem;
   reservations: Array<
@@ -53,4 +58,5 @@ export type ClientDetailResponse = {
       | "user_id"
     > & { point_id: string }
   >;
+  activity?: ClientActivityItem[];
 };

@@ -3,8 +3,10 @@
 import { Alert, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 import { AppHeader } from "@/components/app-header";
+import { ClientActivityList } from "@/components/client-activity-list";
 import { SoftCard } from "@/components/ui/soft-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { api } from "@/lib/api";
@@ -17,7 +19,14 @@ import {
 } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { reservationStatusVisual } from "@/lib/reservations";
-import Link from "next/link";
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="px-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-text-muted">
+      {children}
+    </h2>
+  );
+}
 
 export default function ClientDetailPage() {
   const t = useT();
@@ -77,50 +86,60 @@ export default function ClientDetailPage() {
       ) : null}
 
       {data ? (
-        <ul className="flex flex-col gap-2.5 pb-2">
-          {data.reservations.map((item) => {
-            const visual = reservationStatusVisual(item);
-            return (
-              <li key={item.id}>
-                <Link href={`/reservation/${item.id}/?point=${item.point_id}`}>
-                  <SoftCard className="flex items-center justify-between gap-3 transition active:scale-[0.99]">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <StatusBadge tone={item.service_type === "luggage" ? "info" : "gold"}>
-                          {item.service_type === "luggage"
-                            ? t("reservation.serviceLuggage")
-                            : t("reservation.serviceKeys")}
-                        </StatusBadge>
-                        <StatusBadge tone={visual.tone}>
-                          {(() => {
-                            const label = t(visual.labelKey);
-                            return label === visual.labelKey ? item.lifecycle : label;
-                          })()}
-                        </StatusBadge>
-                      </div>
-                      <div className="mt-1 text-[13px] font-semibold text-brand-text">
-                        #{item.public_id}
-                      </div>
-                      <div className="text-xs text-brand-text-muted">
-                        {formatDateShort(item.starts_at, locale)}{" "}
-                        {formatTime(item.starts_at, locale)}
-                        {" → "}
-                        {formatDateShort(item.ends_at, locale)}{" "}
-                        {formatTime(item.ends_at, locale)}
-                      </div>
-                    </div>
-                    <span className="text-brand-text-muted">›</span>
-                  </SoftCard>
-                </Link>
-              </li>
-            );
-          })}
-          {data.reservations.length === 0 ? (
-            <p className="py-8 text-center text-sm text-brand-text-muted">
-              {t("clients.noBookings")}
-            </p>
-          ) : null}
-        </ul>
+        <div className="flex flex-col gap-4 pb-2">
+          <div className="space-y-2">
+            <SectionLabel>{t("clients.sectionBookings")}</SectionLabel>
+            <ul className="flex flex-col gap-2.5">
+              {data.reservations.map((item) => {
+                const visual = reservationStatusVisual(item);
+                return (
+                  <li key={item.id}>
+                    <Link href={`/reservation/${item.id}/?point=${item.point_id}`}>
+                      <SoftCard className="flex items-center justify-between gap-3 transition active:scale-[0.99]">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <StatusBadge tone={item.service_type === "luggage" ? "info" : "gold"}>
+                              {item.service_type === "luggage"
+                                ? t("reservation.serviceLuggage")
+                                : t("reservation.serviceKeys")}
+                            </StatusBadge>
+                            <StatusBadge tone={visual.tone}>
+                              {(() => {
+                                const label = t(visual.labelKey);
+                                return label === visual.labelKey ? item.lifecycle : label;
+                              })()}
+                            </StatusBadge>
+                          </div>
+                          <div className="mt-1 text-[13px] font-semibold text-brand-text">
+                            #{item.public_id}
+                          </div>
+                          <div className="text-xs text-brand-text-muted">
+                            {formatDateShort(item.starts_at, locale)}{" "}
+                            {formatTime(item.starts_at, locale)}
+                            {" → "}
+                            {formatDateShort(item.ends_at, locale)}{" "}
+                            {formatTime(item.ends_at, locale)}
+                          </div>
+                        </div>
+                        <span className="text-brand-text-muted">›</span>
+                      </SoftCard>
+                    </Link>
+                  </li>
+                );
+              })}
+              {data.reservations.length === 0 ? (
+                <p className="py-6 text-center text-sm text-brand-text-muted">
+                  {t("clients.noBookings")}
+                </p>
+              ) : null}
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <SectionLabel>{t("clients.sectionActivity")}</SectionLabel>
+            <ClientActivityList items={data.activity ?? []} />
+          </div>
+        </div>
       ) : null}
     </>
   );

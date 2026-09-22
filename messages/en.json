@@ -62,7 +62,10 @@
     "empty": "No clients found",
     "loadError": "Could not load clients",
     "bookingsCount": "{count} bookings",
-    "noBookings": "No bookings"
+    "noBookings": "No bookings",
+    "sectionBookings": "Bookings",
+    "sectionActivity": "Activity",
+    "activityEmpty": "No activity yet"
   },
   "pointHub": {
     "titleFallback": "Point",
@@ -152,6 +155,7 @@
     "activityManualExtend": "Manual extension",
     "activityStatus": "Status update",
     "activityTakenOut": "Status → Taken out",
+    "activityDeposit": "Luggage deposited",
     "activityTtlockRefresh": "TTLock refresh",
     "activityResendEmail": "Resend email",
     "activityResendSms": "Resend SMS",

@@ -62,7 +62,10 @@
     "empty": "Клиенты не найдены",
     "loadError": "Не удалось загрузить клиентов",
     "bookingsCount": "{count} бронирований",
-    "noBookings": "Нет бронирований"
+    "noBookings": "Нет бронирований",
+    "sectionBookings": "Бронирования",
+    "sectionActivity": "Активность",
+    "activityEmpty": "Пока нет событий"
   },
   "pointHub": {
     "titleFallback": "Точка",
@@ -152,6 +155,7 @@
     "activityManualExtend": "Ручное продление",
     "activityStatus": "Смена статуса",
     "activityTakenOut": "Статус → Забрали",
+    "activityDeposit": "Багаж сдан",
     "activityTtlockRefresh": "Обновление TTLock",
     "activityResendEmail": "Повтор email",
     "activityResendSms": "Повтор SMS",
