@@ -56,7 +56,21 @@ export type ClientDetailResponse = {
       | "first_name"
       | "last_name"
       | "user_id"
-    > & { point_id: string }
+    > & {
+      point_id: string;
+      access_status?: string;
+      auto_renew_enabled?: boolean;
+      ttlock_passcode?: string | null;
+      safe_label?: string | null;
+      assigned_unit_labels?: string[] | null;
+      takeout_at?: string | null;
+      actions?: {
+        can_refresh_ttlock?: boolean;
+        can_rebook?: boolean;
+        can_cancel_auto_renew?: boolean;
+        can_retry_provisioning?: boolean;
+      };
+    }
   >;
   activity?: ClientActivityItem[];
 };

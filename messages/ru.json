@@ -65,7 +65,8 @@
     "noBookings": "Нет бронирований",
     "sectionBookings": "Бронирования",
     "sectionActivity": "Активность",
-    "activityEmpty": "Пока нет событий"
+    "activityEmpty": "Пока нет событий",
+    "openReservation": "Открыть бронь"
   },
   "pointHub": {
     "titleFallback": "Точка",

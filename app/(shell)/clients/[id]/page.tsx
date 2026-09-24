@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { AppHeader } from "@/components/app-header";
 import { ClientActivityList } from "@/components/client-activity-list";
+import { ClientBookingActions } from "@/components/client-booking-actions";
 import { SoftCard } from "@/components/ui/soft-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { api } from "@/lib/api";
@@ -94,8 +95,11 @@ export default function ClientDetailPage() {
                 const visual = reservationStatusVisual(item);
                 return (
                   <li key={item.id}>
-                    <Link href={`/reservation/${item.id}/?point=${item.point_id}`}>
-                      <SoftCard className="flex items-center justify-between gap-3 transition active:scale-[0.99]">
+                    <SoftCard>
+                      <Link
+                        href={`/reservation/${item.id}/?point=${item.point_id}`}
+                        className="flex items-center justify-between gap-3 transition active:scale-[0.99]"
+                      >
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <StatusBadge tone={item.service_type === "luggage" ? "info" : "gold"}>
@@ -120,10 +124,22 @@ export default function ClientDetailPage() {
                             {formatDateShort(item.ends_at, locale)}{" "}
                             {formatTime(item.ends_at, locale)}
                           </div>
+                          {item.ttlock_passcode ? (
+                            <div className="mt-1 text-[11px] text-brand-text">
+                              TTLock: <span className="font-semibold">{item.ttlock_passcode}</span>
+                            </div>
+                          ) : null}
                         </div>
                         <span className="text-brand-text-muted">›</span>
-                      </SoftCard>
-                    </Link>
+                      </Link>
+                      <ClientBookingActions
+                        reservationId={item.id}
+                        pointId={item.point_id}
+                        status={item.status}
+                        phoneE164={client?.phone_e164}
+                        actions={item.actions}
+                      />
+                    </SoftCard>
                   </li>
                 );
               })}

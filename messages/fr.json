@@ -65,7 +65,8 @@
     "noBookings": "Aucune réservation",
     "sectionBookings": "Réservations",
     "sectionActivity": "Activité",
-    "activityEmpty": "Aucune activité"
+    "activityEmpty": "Aucune activité",
+    "openReservation": "Ouvrir la réservation"
   },
   "pointHub": {
     "titleFallback": "Point",
