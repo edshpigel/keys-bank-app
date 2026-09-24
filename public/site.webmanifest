@@ -1,13 +1,6 @@
 {
-  "name": "KeysBank Admin",
+  "name": "KeysBank",
   "short_name": "KeysBank",
-  "description": "Operator cabinet for KeysBank points",
-  "start_url": "/login/",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#1a1a1a",
-  "background_color": "#1a1a1a",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -21,5 +14,8 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "theme_color": "#2C2B29",
+  "background_color": "#2C2B29",
+  "display": "standalone"
 }
