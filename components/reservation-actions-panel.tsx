@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { ConfirmActionSheet } from "@/components/confirm-action-sheet";
 import { RefundSheet } from "@/components/refund-sheet";
 import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
 import { ApiError, api, type NotificationLogItem, type ReservationDetail } from "@/lib/api";
@@ -19,11 +20,19 @@ type Props = {
   timeZone?: string;
 };
 
+type PendingAction = {
+  key: string;
+  label: string;
+  danger: boolean;
+  run: () => void;
+};
+
 export function ReservationActionsPanel({ reservationId, detail, timeZone }: Props) {
   const t = useT();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const [refundOpen, setRefundOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   const { data: notifications } = useQuery({
@@ -45,6 +54,7 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
       return api.post(path, body, headers);
     },
     onSuccess: () => {
+      setPendingAction(null);
       setMessage({ kind: "success", text: t("reservation.actionSuccess") });
       void queryClient.invalidateQueries({ queryKey: ["operator", "reservation", reservationId] });
       void queryClient.invalidateQueries({ queryKey: ["operator", "notifications", reservationId] });
@@ -107,7 +117,10 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
       label: t("reservation.refundBooking"),
       danger: true,
       show: detail.payments.some((p) => p.status === "paid"),
-      run: () => setRefundOpen(true),
+      run: () => {
+        setPendingAction(null);
+        setRefundOpen(true);
+      },
     },
   ].filter((a) => a.show);
 
@@ -130,7 +143,15 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
                   <button
                     type="button"
                     disabled={mutation.isPending}
-                    onClick={action.run}
+                    onClick={() => {
+                      setMessage(null);
+                      setPendingAction({
+                        key: action.key,
+                        label: action.label,
+                        danger: action.danger,
+                        run: action.run,
+                      });
+                    }}
                     className={cn(
                       "flex w-full items-center justify-between px-3.5 py-3.5 text-left text-[15px] transition active:bg-black/[0.03]",
                       action.danger ? "font-medium text-[#C0392B]" : "font-medium text-brand-text",
@@ -184,6 +205,24 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
           </SoftCard>
         </div>
       ) : null}
+
+      <ConfirmActionSheet
+        open={Boolean(pendingAction)}
+        title={t("reservation.confirmTitle")}
+        description={
+          pendingAction
+            ? t("reservation.confirmBody", { action: pendingAction.label })
+            : ""
+        }
+        confirmLabel={t("reservation.confirmOk")}
+        cancelLabel={t("reservation.cancel")}
+        danger={Boolean(pendingAction?.danger)}
+        pending={mutation.isPending}
+        onClose={() => {
+          if (!mutation.isPending) setPendingAction(null);
+        }}
+        onConfirm={() => pendingAction?.run()}
+      />
 
       <RefundSheet
         open={refundOpen}

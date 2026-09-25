@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ConfirmActionSheet } from "@/components/confirm-action-sheet";
 import { SoftCard } from "@/components/ui/soft-card";
 import { ApiError, api, type ReservationDetail } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
@@ -27,6 +28,13 @@ type Props = {
   actions?: ActionsFlags;
 };
 
+type PendingAction = {
+  key: string;
+  label: string;
+  danger: boolean;
+  run: () => void;
+};
+
 export function ClientBookingActions({
   reservationId,
   pointId,
@@ -38,6 +46,7 @@ export function ClientBookingActions({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   const detailQuery = useQuery({
     queryKey: ["operator", "reservation", reservationId],
@@ -57,6 +66,7 @@ export function ClientBookingActions({
       return api.post(path, undefined, headers);
     },
     onSuccess: () => {
+      setPendingAction(null);
       setMessage({ kind: "success", text: t("reservation.actionSuccess") });
       void queryClient.invalidateQueries({ queryKey: ["operator", "client"] });
       void queryClient.invalidateQueries({ queryKey: ["operator", "reservation", reservationId] });
@@ -142,21 +152,34 @@ export function ClientBookingActions({
               <Spinner size="sm" className="text-brand-gold" />
             </div>
           ) : null}
-          {items.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              disabled={mutation.isPending}
-              onClick={action.run}
-              className={cn(
-                "flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-[13px] transition active:bg-black/[0.03]",
-                action.danger ? "font-medium text-[#C0392B]" : "font-medium text-brand-text",
-              )}
-            >
-              <span>{action.label}</span>
-              <ChevronRight className="h-3.5 w-3.5 text-brand-text-muted" />
-            </button>
-          ))}
+          <SoftCard padding="none">
+            <ul>
+              {items.map((action) => (
+                <li key={action.key} className="border-b border-brand-border last:border-b-0">
+                  <button
+                    type="button"
+                    disabled={mutation.isPending}
+                    onClick={() => {
+                      setMessage(null);
+                      setPendingAction({
+                        key: action.key,
+                        label: action.label,
+                        danger: action.danger,
+                        run: action.run,
+                      });
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between px-3 py-2.5 text-left text-[13px] transition active:bg-black/[0.03]",
+                      action.danger ? "font-medium text-[#C0392B]" : "font-medium text-brand-text",
+                    )}
+                  >
+                    <span>{action.label}</span>
+                    <ChevronRight className="h-3.5 w-3.5 text-brand-text-muted" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SoftCard>
           <Link
             href={`/reservation/${reservationId}/?point=${pointId}`}
             className="block px-2 py-2 text-[12px] font-semibold text-brand-gold"
@@ -165,6 +188,24 @@ export function ClientBookingActions({
           </Link>
         </div>
       ) : null}
+
+      <ConfirmActionSheet
+        open={Boolean(pendingAction)}
+        title={t("reservation.confirmTitle")}
+        description={
+          pendingAction
+            ? t("reservation.confirmBody", { action: pendingAction.label })
+            : ""
+        }
+        confirmLabel={t("reservation.confirmOk")}
+        cancelLabel={t("reservation.cancel")}
+        danger={Boolean(pendingAction?.danger)}
+        pending={mutation.isPending}
+        onClose={() => {
+          if (!mutation.isPending) setPendingAction(null);
+        }}
+        onConfirm={() => pendingAction?.run()}
+      />
     </div>
   );
 }
