@@ -88,6 +88,9 @@ export default function RootLayout({
         <Script id="kb-sw-register" strategy="beforeInteractive">
           {`if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).catch(function(){})}`}
         </Script>
+        <Script id="kb-tg-early" strategy="beforeInteractive">
+          {`(function(){try{var d=document.documentElement,s=sessionStorage.getItem("kb_app_telegram_env")==="1",h=(location.hash||"")+(location.search||""),u=navigator.userAgent||"";if(s||/tgWebApp(?:Data|Version|Platform|ThemeParams)/.test(h)||/Telegram/i.test(u)){d.classList.add("kb-tg");d.style.setProperty("--kb-tg-top-fallback","56px")}}catch(e){}})()`}
+        </Script>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <AppProviders>{children}</AppProviders>
       </body>

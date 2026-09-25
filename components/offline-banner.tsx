@@ -24,7 +24,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 top-0 z-[10000] bg-brand-header px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-center text-xs font-medium text-white/90"
+      className="fixed inset-x-0 top-0 z-[10000] bg-brand-header px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top,0px),calc(var(--tg-safe-area-inset-top,0px)+var(--tg-content-safe-area-inset-top,0px)),var(--kb-tg-top-fallback,0px))] text-center text-xs font-medium text-white/90"
     >
       {t("common.offlineBanner")}
     </div>

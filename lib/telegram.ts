@@ -1,3 +1,10 @@
+type TelegramInset = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
 export type TelegramWebApp = {
   initData: string;
   initDataUnsafe: Record<string, unknown>;
@@ -8,10 +15,15 @@ export type TelegramWebApp = {
   version?: string;
   colorScheme?: "light" | "dark";
   themeParams?: Record<string, string>;
+  viewportStableHeight?: number;
+  safeAreaInset?: TelegramInset;
+  contentSafeAreaInset?: TelegramInset;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
   setBottomBarColor?: (color: string) => void;
   disableVerticalSwipes?: () => void;
+  onEvent?: (eventType: string, handler: () => void) => void;
+  offEvent?: (eventType: string, handler: () => void) => void;
 };
 
 declare global {
@@ -85,10 +97,63 @@ export function getTelegramInitData(): string {
 
 const PAGE_BG = "#d1b07a";
 const HEADER_BG = "#1a1a1a";
+/** Fallback when Telegram reports 0 insets (expanded Mini App under chrome). */
+const TG_TOP_FALLBACK_PX = 56;
+
+let telegramSafeAreaBound = false;
+
+function setInsetVar(root: HTMLElement, name: string, value: number | undefined) {
+  root.style.setProperty(name, `${Math.max(0, value ?? 0)}px`);
+}
+
+function syncTelegramSafeArea(tg: TelegramWebApp) {
+  const root = document.documentElement;
+  const sa = tg.safeAreaInset;
+  const csa = tg.contentSafeAreaInset;
+
+  setInsetVar(root, "--tg-safe-area-inset-top", sa?.top);
+  setInsetVar(root, "--tg-safe-area-inset-bottom", sa?.bottom);
+  setInsetVar(root, "--tg-safe-area-inset-left", sa?.left);
+  setInsetVar(root, "--tg-safe-area-inset-right", sa?.right);
+  setInsetVar(root, "--tg-content-safe-area-inset-top", csa?.top);
+  setInsetVar(root, "--tg-content-safe-area-inset-bottom", csa?.bottom);
+  setInsetVar(root, "--tg-content-safe-area-inset-left", csa?.left);
+  setInsetVar(root, "--tg-content-safe-area-inset-right", csa?.right);
+
+  const reportedTop = (sa?.top ?? 0) + (csa?.top ?? 0);
+  root.style.setProperty(
+    "--kb-tg-top-fallback",
+    reportedTop > 0 ? "0px" : `${TG_TOP_FALLBACK_PX}px`,
+  );
+
+  if (tg.viewportStableHeight) {
+    root.style.setProperty("--tg-viewport-stable-height", `${tg.viewportStableHeight}px`);
+  }
+}
+
+function bindTelegramSafeArea(tg: TelegramWebApp) {
+  if (telegramSafeAreaBound) return;
+  telegramSafeAreaBound = true;
+  const sync = () => syncTelegramSafeArea(tg);
+  tg.onEvent?.("safeAreaChanged", sync);
+  tg.onEvent?.("contentSafeAreaChanged", sync);
+  tg.onEvent?.("viewportChanged", sync);
+  tg.onEvent?.("fullscreenChanged", sync);
+}
 
 export function initTelegramUi() {
+  if (!isTelegramWebApp()) return;
+
+  const root = document.documentElement;
+  root.classList.add("kb-tg");
+
   const tg = window.Telegram?.WebApp;
-  if (!tg) return;
+  if (!tg) {
+    // Detected Telegram env before SDK is ready — still reserve chrome space.
+    root.style.setProperty("--kb-tg-top-fallback", `${TG_TOP_FALLBACK_PX}px`);
+    return;
+  }
+
   tg.ready();
   tg.expand();
   tg.setHeaderColor?.(HEADER_BG);
@@ -96,7 +161,9 @@ export function initTelegramUi() {
   tg.setBottomBarColor?.(PAGE_BG);
   tg.disableVerticalSwipes?.();
 
-  const root = document.documentElement;
+  syncTelegramSafeArea(tg);
+  bindTelegramSafeArea(tg);
+
   root.style.colorScheme = "light only";
   root.style.backgroundColor = PAGE_BG;
   if (document.body) {

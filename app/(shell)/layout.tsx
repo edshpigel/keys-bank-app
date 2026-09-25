@@ -41,8 +41,8 @@ function ShellLayoutInner({
   return (
     <div className="kb-app-bg flex justify-center">
       <div className="flex min-h-dvh w-full max-w-[990px] flex-col px-5">
-        <PullToRefresh className="safe-top flex-1 pt-3 pb-3">
-          <div className="flex flex-col gap-3">{children}</div>
+        <PullToRefresh className="safe-top flex-1 pb-3">
+          <div className="flex flex-col gap-3 pt-3">{children}</div>
         </PullToRefresh>
 
         <div className="sticky bottom-0 z-30 bg-brand-page-bg/95 backdrop-blur-md">
