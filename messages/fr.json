@@ -215,6 +215,8 @@
     "free": "Libre",
     "busy": "Occupé",
     "reserved": "Réservé",
+    "reservedFor": "Réservé pour",
+    "openBooking": "Ouvrir la réservation",
     "stateUnknown": "—",
     "sheetTitle": "Casier {label}",
     "open": "Ouvrir le casier",

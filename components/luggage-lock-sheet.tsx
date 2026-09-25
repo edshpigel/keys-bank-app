@@ -136,6 +136,29 @@ export function LuggageLockSheet({
           </h2>
           <p className="mt-1 text-center text-sm text-brand-text-muted">{statusMeta}</p>
 
+          {lock.operational_status === "reserved" ? (
+            <div className="mt-3 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-3.5 py-3 text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-brand-text-muted">
+                {t("luggage.reservedFor")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-brand-text">
+                {lock.reserved_public_id ? `#${lock.reserved_public_id}` : "—"}
+                {lock.reserved_client_name ? ` · ${lock.reserved_client_name}` : ""}
+              </p>
+              {lock.reserved_email ? (
+                <p className="mt-0.5 truncate text-xs text-brand-text-muted">{lock.reserved_email}</p>
+              ) : null}
+              {lock.reserved_reservation_id ? (
+                <Link
+                  href={`/reservation/${lock.reserved_reservation_id}/?point=${pointId}`}
+                  className="mt-2 inline-block text-xs font-semibold text-brand-gold"
+                >
+                  {t("luggage.openBooking")}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+
           {message ? (
             <p
               className={cn(
@@ -190,6 +213,11 @@ export function LuggageLockSheet({
                         <div className="mt-0.5 text-sm capitalize text-brand-text-muted">
                           {t(`lifecycle.${row.lifecycle}`)} · {t(`status.${row.status}`)}
                         </div>
+                        {row.client_name || row.email ? (
+                          <div className="mt-0.5 truncate text-xs text-brand-text-muted">
+                            {row.client_name || row.email}
+                          </div>
+                        ) : null}
                       </Link>
                     </li>
                   ))}

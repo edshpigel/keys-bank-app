@@ -326,20 +326,27 @@ export type SafeGridItem = {
 
 export type UnitReservationItem = {
   id: string;
-  public_id: string;
+  public_id: number | string;
   status: string;
   lifecycle: string;
   service_type: string;
+  client_name?: string;
+  email?: string;
 };
 
 export type LuggageGridItem = {
   unit_id: string;
   label: string;
   busy: boolean;
+  operational_status?: string | null;
   api_lock_state: string | null;
   api_stateno: string | null;
   fixno: string | null;
   lockno: string | null;
+  reserved_reservation_id?: string | null;
+  reserved_public_id?: number | null;
+  reserved_client_name?: string | null;
+  reserved_email?: string | null;
 };
 
 export type LuggageGridCell = {

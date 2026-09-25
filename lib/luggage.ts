@@ -1,16 +1,18 @@
 import type { LuggageGridItem } from "@/lib/api";
 
 export function luggageStateLabel(item: LuggageGridItem, t: (k: string) => string): string {
+  if (item.operational_status === "reserved") return t("luggage.reserved");
   const stateno = String(item.api_stateno ?? "").trim();
   if (stateno === "1") return t("luggage.free");
   if (stateno === "2") return t("luggage.busy");
-  if (stateno === "3") return t("luggage.reserved");
+  if (stateno === "3") return t("luggage.busy");
   if (item.busy) return t("luggage.busy");
   return t("luggage.free");
 }
 
-/** Dot colors match lk-keysbank: 1 green / 2 amber / 3 red. */
+/** Dot colors: reserved gold / 1 green / 2 amber / 3 red. */
 export function luggageDotClass(item: LuggageGridItem): string {
+  if (item.operational_status === "reserved") return "bg-brand-gold";
   const stateno = String(item.api_stateno ?? "").trim();
   if (stateno === "1") return "bg-[#2fb45a]";
   if (stateno === "2") return "bg-[#e8a020]";
@@ -20,6 +22,7 @@ export function luggageDotClass(item: LuggageGridItem): string {
 }
 
 export function canOccupyLocker(item: LuggageGridItem): boolean {
+  if (item.operational_status === "reserved") return false;
   const stateno = String(item.api_stateno ?? "").trim();
   return !item.busy && stateno !== "2" && stateno !== "3";
 }

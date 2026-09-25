@@ -215,6 +215,8 @@
     "free": "Свободна",
     "busy": "Занята",
     "reserved": "Зарезервирована",
+    "reservedFor": "Зарезервировано за",
+    "openBooking": "Открыть бронь",
     "stateUnknown": "—",
     "sheetTitle": "Ячейка {label}",
     "open": "Открыть замок",

@@ -215,6 +215,8 @@
     "free": "Free",
     "busy": "Busy",
     "reserved": "Reserved",
+    "reservedFor": "Reserved for",
+    "openBooking": "Open booking",
     "stateUnknown": "—",
     "sheetTitle": "Locker {label}",
     "open": "Open lock",
