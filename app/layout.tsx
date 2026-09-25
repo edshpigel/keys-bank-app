@@ -88,7 +88,7 @@ export default function RootLayout({
         <Script id="kb-sw-register" strategy="beforeInteractive">
           {`if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).catch(function(){})}`}
         </Script>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -5,6 +5,7 @@ export type TelegramWebApp = {
   expand: () => void;
   close: () => void;
   platform?: string;
+  version?: string;
   colorScheme?: "light" | "dark";
   themeParams?: Record<string, string>;
   setHeaderColor?: (color: string) => void;
@@ -21,9 +22,60 @@ declare global {
   }
 }
 
+const TELEGRAM_ENV_STORAGE = "kb_app_telegram_env";
+
+function hasTelegramLaunchParams(): boolean {
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
+  return /tgWebApp(?:Data|Version|Platform|ThemeParams)/.test(hash + search);
+}
+
+function rememberTelegramEnv(): void {
+  try {
+    sessionStorage.setItem(TELEGRAM_ENV_STORAGE, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function rememberedTelegramEnv(): boolean {
+  try {
+    return sessionStorage.getItem(TELEGRAM_ENV_STORAGE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Mini App / Telegram WebView — including before initData is parsed or after hash is cleared. */
 export function isTelegramWebApp(): boolean {
   if (typeof window === "undefined") return false;
-  return Boolean(window.Telegram?.WebApp?.initData);
+
+  if (rememberedTelegramEnv()) return true;
+
+  const tg = window.Telegram?.WebApp;
+  if (tg?.initData) {
+    rememberTelegramEnv();
+    return true;
+  }
+
+  if (hasTelegramLaunchParams()) {
+    rememberTelegramEnv();
+    return true;
+  }
+
+  const platform = tg?.platform;
+  if (platform && platform !== "unknown") {
+    rememberTelegramEnv();
+    return true;
+  }
+
+  // Telegram client WebViews (Mini App and in-app browser opened from the bot).
+  if (/Telegram/i.test(window.navigator.userAgent)) {
+    rememberTelegramEnv();
+    return true;
+  }
+
+  return false;
 }
 
 export function getTelegramInitData(): string {

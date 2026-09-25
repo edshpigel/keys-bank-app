@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/offline-banner";
 import { PwaInstallGate } from "@/components/pwa-install-gate";
 import { shouldShowPwaInstallGate } from "@/lib/pwa";
-import { initTelegramUi } from "@/lib/telegram";
+import { initTelegramUi, isTelegramWebApp } from "@/lib/telegram";
 
 export function PwaAccessGate({ children }: { children: React.ReactNode }) {
   const [showGate, setShowGate] = useState(false);
@@ -13,8 +13,6 @@ export function PwaAccessGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     initTelegramUi();
-    setShowGate(shouldShowPwaInstallGate());
-    setChecked(true);
 
     let timeoutId = 0;
     const hideSplash = () => {
@@ -29,12 +27,47 @@ export function PwaAccessGate({ children }: { children: React.ReactNode }) {
       timeoutId = window.setTimeout(hideSplash, 2500);
     }
 
+    const applyGate = () => {
+      // Never flash the install screen inside Telegram while the SDK is still loading.
+      if (isTelegramWebApp()) {
+        setShowGate(false);
+        setChecked(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (applyGate()) {
+      return () => {
+        window.removeEventListener("load", hideSplash);
+        window.clearTimeout(timeoutId);
+      };
+    }
+
+    // telegram-web-app.js is afterInteractive — wait briefly for it before deciding.
     const poll = window.setInterval(() => {
       initTelegramUi();
-      setShowGate(shouldShowPwaInstallGate());
-      if (window.Telegram?.WebApp) window.clearInterval(poll);
-    }, 200);
-    const stopPoll = window.setTimeout(() => window.clearInterval(poll), 4000);
+      if (applyGate()) {
+        window.clearInterval(poll);
+        return;
+      }
+      // Script present with no Telegram signals → regular browser.
+      if (window.Telegram?.WebApp && !isTelegramWebApp()) {
+        setShowGate(shouldShowPwaInstallGate());
+        setChecked(true);
+        window.clearInterval(poll);
+      }
+    }, 100);
+
+    const stopPoll = window.setTimeout(() => {
+      window.clearInterval(poll);
+      if (!isTelegramWebApp()) {
+        setShowGate(shouldShowPwaInstallGate());
+      } else {
+        setShowGate(false);
+      }
+      setChecked(true);
+    }, 2500);
 
     return () => {
       window.removeEventListener("load", hideSplash);
