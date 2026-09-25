@@ -68,7 +68,10 @@ async function proxy(request: Request, context: RouteContext) {
   }
 
   const url = new URL(request.url);
-  const target = `${getUpstreamUrl(`/v1/operator/${path.join("/")}`)}${url.search}`;
+  // Drop empty segments from trailingSlash URLs (`points/` → ["points",""]).
+  // Upstream FastAPI redirects slash→no-slash with 307 and strips Authorization.
+  const joined = path.filter((segment) => segment.length > 0).join("/");
+  const target = `${getUpstreamUrl(`/v1/operator/${joined}`)}${url.search}`;
 
   const headers = new Headers();
   headers.set("Authorization", `Bearer ${token}`);
@@ -82,13 +85,28 @@ async function proxy(request: Request, context: RouteContext) {
     method: request.method,
     headers,
     cache: "no-store",
+    redirect: "manual",
   };
 
   if (request.method !== "GET" && request.method !== "HEAD") {
     init.body = await request.arrayBuffer();
   }
 
-  const upstream = await fetch(target, init);
+  let upstream = await fetch(target, init);
+  if (upstream.status === 307 || upstream.status === 308) {
+    const location = upstream.headers.get("location");
+    if (location) {
+      try {
+        const redirected = new URL(location, target);
+        const base = new URL(getUpstreamUrl("/"));
+        if (redirected.origin === base.origin) {
+          upstream = await fetch(redirected.toString(), init);
+        }
+      } catch {
+        /* keep original redirect response */
+      }
+    }
+  }
   const body = await upstream.arrayBuffer();
   return new NextResponse(body, {
     status: upstream.status,
