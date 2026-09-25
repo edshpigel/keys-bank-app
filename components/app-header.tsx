@@ -1,13 +1,12 @@
 "use client";
 
-import { Button } from "@heroui/react";
 import { ChevronLeft, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { cn } from "@/lib/cn";
-import { api } from "@/lib/api";
+import { redirectToLogout } from "@/lib/auth-client";
 import { useT } from "@/lib/i18n-provider";
-import { useAppNavigation } from "@/lib/navigation";
 
 type AppHeaderProps = {
   title: string;
@@ -32,11 +31,12 @@ export function AppHeader({
   trailing,
 }: AppHeaderProps) {
   const t = useT();
-  const { navigate } = useAppNavigation();
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  async function onLogout() {
-    await api.auth.logout().catch(() => undefined);
-    navigate("/login/", { replace: true });
+  function onLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    redirectToLogout();
   }
 
   const backLink = backHref ? (
@@ -72,15 +72,15 @@ export function AppHeader({
       {trailing}
       {backHref && backSide === "end" ? backLink : null}
       {showLogout ? (
-        <Button
-          isIconOnly
-          variant="ghost"
+        <button
+          type="button"
           aria-label={t("common.logout")}
-          className="shrink-0 text-brand-text-muted"
-          onPress={onLogout}
+          disabled={loggingOut}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-brand-text-muted transition hover:bg-black/5 hover:text-brand-text disabled:opacity-50"
+          onClick={onLogout}
         >
           <LogOut className="h-5 w-5" />
-        </Button>
+        </button>
       ) : null}
     </header>
   );

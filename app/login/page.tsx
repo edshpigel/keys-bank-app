@@ -20,6 +20,7 @@ import { AppLoadingScreen } from "@/components/app-loading-screen";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ApiError, api } from "@/lib/api";
+import { clearSignedOut, isSignedOut } from "@/lib/auth-client";
 import { useT } from "@/lib/i18n-provider";
 import {
   type LoginFieldErrors,
@@ -68,6 +69,7 @@ function LoginForm() {
   const [tgChecking, setTgChecking] = useState(true);
 
   const goNext = useCallback(() => {
+    clearSignedOut();
     const next = searchParams.get("next") || "/points/";
     navigate(next.startsWith("/") ? next : "/points/", { replace: true });
   }, [navigate, searchParams]);
@@ -76,7 +78,7 @@ function LoginForm() {
     let cancelled = false;
 
     async function tryTelegram() {
-      if (!isTelegramWebApp()) {
+      if (!isTelegramWebApp() || isSignedOut()) {
         setTgChecking(false);
         return;
       }
