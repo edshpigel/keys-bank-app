@@ -14,9 +14,7 @@ function safeDotClass(item: SafeGridItem) {
   if (item.operational_status === "disabled" || !item) {
     return "bg-[#9a9a9a]";
   }
-  if (item.operational_status === "pending_empty") {
-    return "bg-[#e8a020]";
-  }
+  // Keys: only free (green) vs booked (red). No luggage-style orange reserve.
   if (item.busy) {
     return "bg-[#e14343]";
   }
@@ -25,7 +23,6 @@ function safeDotClass(item: SafeGridItem) {
 
 function safeAriaLabel(item: SafeGridItem, t: (k: string) => string) {
   if (item.operational_status === "disabled") return t("safes.disabled");
-  if (item.operational_status === "pending_empty") return t("safes.pendingEmpty");
   if (item.busy) return t("safes.busy");
   return t("safes.free");
 }
