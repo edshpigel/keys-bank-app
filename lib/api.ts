@@ -188,6 +188,9 @@ export const api = {
     logout() {
       return request<{ ok: boolean }>("auth/logout", { method: "POST" });
     },
+    logoutAll() {
+      return request<{ ok: boolean; cleared: number }>("auth/logout-all", { method: "POST" });
+    },
     refresh() {
       return request<{ ok: boolean }>("auth/refresh", {
         method: "POST",

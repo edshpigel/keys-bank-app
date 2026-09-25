@@ -39,7 +39,7 @@
     "signingIn": "Вход…",
     "changeEmail": "Сменить email",
     "codeSent": "Код отправлен на email.",
-    "telegramLink": "Введите код с email для привязки Telegram.",
+    "telegramLink": "Войдите по коду с email — привязка Telegram не нужна.",
     "telegramChecking": "Подключение Telegram…",
     "showPassword": "Показать",
     "hidePassword": "Скрыть",
@@ -309,9 +309,11 @@
     "role": "Роль",
     "locale": "Язык",
     "telegram": "Telegram",
-    "telegramLinked": "Привязан",
-    "telegramUnlinked": "Не привязан — войдите по коду",
+    "telegramLinked": "Привязан (автовход)",
+    "telegramUnlinked": "Не привязан — вход по email",
     "telegramNa": "—",
+    "logoutAll": "Выйти на всех устройствах",
+    "logoutAllFailed": "Не удалось сбросить сессии",
     "loadError": "Профиль недоступен"
   }
 }

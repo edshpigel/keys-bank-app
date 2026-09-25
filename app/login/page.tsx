@@ -65,7 +65,6 @@ function LoginForm() {
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
-  const [telegramUserId, setTelegramUserId] = useState<string | null>(null);
   const [tgChecking, setTgChecking] = useState(true);
 
   const goNext = useCallback(() => {
@@ -83,6 +82,8 @@ function LoginForm() {
         return;
       }
       initTelegramUi();
+      // Prefer email OTP in Telegram — chat_id bind is optional.
+      setMode("code");
       const initData = getTelegramInitData();
       if (!initData) {
         setTgChecking(false);
@@ -91,14 +92,8 @@ function LoginForm() {
       try {
         const res = await api.auth.telegramInit({ init_data: initData });
         if (cancelled) return;
-        if (res.needs_bind) {
-          setTelegramUserId(res.telegram_user_id || null);
-          setMode("code");
-          setInfo(t("login.telegramLink"));
-          setTgChecking(false);
-          return;
-        }
-        if (res.ok !== false) {
+        // Already linked Telegram → silent session. Otherwise show email login.
+        if (!res.needs_bind && res.ok !== false) {
           goNext();
           return;
         }
@@ -112,7 +107,7 @@ function LoginForm() {
     return () => {
       cancelled = true;
     };
-  }, [goNext, t]);
+  }, [goNext]);
 
   const autofillFields = useMemo(
     () => [
@@ -205,15 +200,7 @@ function LoginForm() {
     setFormError(null);
     setLoading(true);
     try {
-      if (telegramUserId) {
-        await api.auth.telegramBind({
-          telegram_user_id: telegramUserId,
-          email: email.trim(),
-          code: value.trim(),
-        });
-      } else {
-        await api.auth.otpVerify({ email: email.trim(), code: value.trim() });
-      }
+      await api.auth.otpVerify({ email: email.trim(), code: value.trim() });
       goNext();
     } catch (err) {
       setFieldErrors({ code: mapError(err) });

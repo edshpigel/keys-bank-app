@@ -14,9 +14,11 @@
 
 | Режим | Flow |
 |-------|------|
-| Telegram | `init_data` → BFF → `POST /v1/operator/telegram/init`; bind → OTP → `POST /v1/operator/telegram/bind` |
-| PWA код | `POST /v1/auth/otp/request` → `POST /v1/auth/otp/verify` |
-| PWA пароль | `POST /v1/auth/login` |
+| Telegram (опционально) | `init_data` → если `telegram_user_id` уже привязан — автовход; иначе обычный login |
+| Email код | `POST /v1/auth/otp/request` → `POST /v1/auth/otp/verify` (из любого Telegram / PWA) |
+| Пароль | `POST /v1/auth/login` |
+
+Привязка `telegram_user_id` **не обязательна**. Сессии: Redis `kb:sess:{refresh}` + индекс `kb:user:sess:{user_id}`; `POST /v1/auth/logout-all` и смена пароля/роли в админке очищают все сессии.
 
 Доступ только для ролей **`admin`**, **`operator`**, **`partner`** (проверка в BFF).
 

@@ -39,7 +39,7 @@
     "signingIn": "Connexion…",
     "changeEmail": "Changer d'email",
     "codeSent": "Code envoyé par email.",
-    "telegramLink": "Entrez le code envoyé à votre email pour lier Telegram.",
+    "telegramLink": "Connectez-vous avec le code email — la liaison Telegram n'est pas requise.",
     "telegramChecking": "Connexion Telegram…",
     "showPassword": "Afficher",
     "hidePassword": "Masquer",
@@ -309,9 +309,11 @@
     "role": "Rôle",
     "locale": "Langue",
     "telegram": "Telegram",
-    "telegramLinked": "Lié",
-    "telegramUnlinked": "Non lié — connectez-vous par code",
+    "telegramLinked": "Lié (connexion auto)",
+    "telegramUnlinked": "Non lié — connexion email",
     "telegramNa": "—",
+    "logoutAll": "Se déconnecter partout",
+    "logoutAllFailed": "Impossible d'effacer les sessions",
     "loadError": "Profil indisponible"
   }
 }

@@ -1,21 +1,35 @@
 "use client";
 
-import { Alert, Spinner } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
+import { Alert, Button, Spinner } from "@heroui/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
 import { api, type MeProfile } from "@/lib/api";
+import { markSignedOut, redirectToLogout } from "@/lib/auth-client";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { isTelegramWebApp } from "@/lib/telegram";
 
 export default function ProfilePage() {
   const t = useT();
   const { locale } = useI18n();
+  const [message, setMessage] = useState<string | null>(null);
   const { data, isLoading, error } = useQuery({
     queryKey: ["operator", "me"],
     queryFn: () => api.get<MeProfile>("me"),
+  });
+
+  const logoutAll = useMutation({
+    mutationFn: () => api.auth.logoutAll(),
+    onSuccess: () => {
+      markSignedOut();
+      redirectToLogout();
+    },
+    onError: () => {
+      setMessage(t("profile.logoutAllFailed"));
+    },
   });
 
   return (
@@ -33,6 +47,7 @@ export default function ProfilePage() {
         </div>
       ) : null}
       {error ? <Alert status="danger">{t("profile.loadError")}</Alert> : null}
+      {message ? <Alert status="danger">{message}</Alert> : null}
       {data ? (
         <SoftCard className="space-y-4">
           <div>
@@ -57,6 +72,17 @@ export default function ProfilePage() {
                   : t("profile.telegramNa")}
             </div>
           </div>
+          <Button
+            variant="secondary"
+            className="h-11 w-full border-brand-text font-semibold"
+            isDisabled={logoutAll.isPending}
+            onPress={() => {
+              setMessage(null);
+              logoutAll.mutate();
+            }}
+          >
+            {logoutAll.isPending ? t("common.loading") : t("profile.logoutAll")}
+          </Button>
         </SoftCard>
       ) : null}
     </>

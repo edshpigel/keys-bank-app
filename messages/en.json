@@ -39,7 +39,7 @@
     "signingIn": "Signing in…",
     "changeEmail": "Change email",
     "codeSent": "Code sent by email.",
-    "telegramLink": "Enter the code sent to your email to link Telegram.",
+    "telegramLink": "Sign in with the email code — Telegram binding is optional.",
     "telegramChecking": "Connecting Telegram…",
     "showPassword": "Show",
     "hidePassword": "Hide",
@@ -309,9 +309,11 @@
     "role": "Role",
     "locale": "Language",
     "telegram": "Telegram",
-    "telegramLinked": "Linked",
-    "telegramUnlinked": "Not linked — sign in with code",
+    "telegramLinked": "Linked (auto sign-in)",
+    "telegramUnlinked": "Not linked — email sign-in",
     "telegramNa": "—",
+    "logoutAll": "Sign out everywhere",
+    "logoutAllFailed": "Could not clear sessions",
     "loadError": "Profile unavailable"
   }
 }
