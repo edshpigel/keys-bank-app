@@ -35,7 +35,7 @@ export default function PointsPage() {
       {error ? <Alert status="danger">{t("points.loadError")}</Alert> : null}
 
       {!isLoading && !error ? (
-        <ul className="flex flex-col gap-2.5">
+        <ul className="flex flex-col gap-3">
           {(data ?? []).map((point) => (
             <li key={point.id}>
               <ListRow

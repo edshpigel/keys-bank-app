@@ -209,6 +209,10 @@
     "pmr": "PMR",
     "unitTitle": "Safe {label}",
     "reservations": "Safe reservations",
+    "ordersEmpty": "No bookings for this safe",
+    "lockOff": "Not for booking",
+    "settingsSaved": "Settings saved",
+    "settingsSaveError": "Could not save settings",
     "markEmpty": "Mark empty",
     "markEmptyDone": "Marked empty"
   },

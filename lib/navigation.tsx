@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
 import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
@@ -57,31 +55,32 @@ function internalNextPath(anchor: HTMLAnchorElement): string | null {
   return `${url.pathname}${url.search}`;
 }
 
+function normalizePath(pathname: string) {
+  if (!pathname) return "/";
+  if (pathname === "/") return "/";
+  return pathname.replace(/\/+$/, "") || "/";
+}
+
 /** Hierarchical depth for slide direction. Deeper = push from right. */
 export function routeDepth(pathname: string): number {
-  const parts = pathname.split("/").filter(Boolean);
+  const parts = normalizePath(pathname).split("/").filter(Boolean);
   if (parts.length === 0) return 0;
-  // Top tabs: points / clients / profile
   if (parts.length === 1) return 1;
-  // /point/:id
   if (parts[0] === "point" && parts.length === 2) return 2;
-  // /point/:id/section
   if (parts[0] === "point" && parts.length >= 3) return 3;
-  // /reservation/:id · /unit/:id · /clients/:id
   if (parts[0] === "reservation" || parts[0] === "unit") return 4;
   if (parts[0] === "clients" && parts.length >= 2) return 2;
   return parts.length;
 }
 
 function directionBetween(fromPath: string, toPath: string): TransitionDirection {
-  const from = fromPath.split("?")[0] || "/";
-  const to = toPath.split("?")[0] || "/";
+  const from = normalizePath(fromPath.split("?")[0] || "/");
+  const to = normalizePath(toPath.split("?")[0] || "/");
   if (from === to) return "fade";
   const fromDepth = routeDepth(from);
   const toDepth = routeDepth(to);
   if (toDepth > fromDepth) return "forward";
   if (toDepth < fromDepth) return "back";
-  // Same depth (e.g. tab switch points ↔ clients): soft fade
   if (fromDepth <= 1 && toDepth <= 1) return "fade";
   return "forward";
 }
@@ -94,7 +93,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const shownAt = useRef(0);
   const hideTimer = useRef(0);
   const failsafeTimer = useRef(0);
-  const pendingDirection = useRef<TransitionDirection>("forward");
+  const pendingDirection = useRef<TransitionDirection>("fade");
 
   const finish = useCallback(() => {
     window.clearTimeout(hideTimer.current);
@@ -108,6 +107,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       const next = `${url.pathname}${url.search}`;
       const current = `${window.location.pathname}${window.location.search}`;
       if (next === current) return;
+      if (normalizePath(url.pathname) === normalizePath(window.location.pathname) && url.search === window.location.search) {
+        return;
+      }
 
       const dir = directionBetween(window.location.pathname, url.pathname);
       pendingDirection.current = dir;
@@ -115,9 +117,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
       window.clearTimeout(hideTimer.current);
       window.clearTimeout(failsafeTimer.current);
-      shownAt.current = Date.now();
-      setPending(true);
-      failsafeTimer.current = window.setTimeout(() => setPending(false), MAX_OVERLAY_MS);
+
+      // Back / fade: no loading overlay — avoids a second “motion” flash.
+      if (dir === "forward") {
+        shownAt.current = Date.now();
+        setPending(true);
+        failsafeTimer.current = window.setTimeout(() => setPending(false), MAX_OVERLAY_MS);
+      } else {
+        setPending(false);
+      }
 
       if (options?.replace) router.replace(href);
       else router.push(href);
@@ -164,26 +172,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   return (
     <NavigationContext.Provider value={{ pending, direction, navigate }}>
       {children}
-      {pending ? <RouteLoadingOverlay light={direction !== "fade"} /> : null}
+      {pending ? <RouteLoadingOverlay /> : null}
     </NavigationContext.Provider>
   );
 }
 
-function RouteLoadingOverlay({ light }: { light?: boolean }) {
+function RouteLoadingOverlay() {
   return (
-    <div
-      className={cn("kb-route-loading", light && "kb-route-loading--light")}
-      aria-live="polite"
-      aria-busy="true"
-    >
-      {!light ? (
-        <>
-          <img src="/logo.png" alt="" width={180} height={68} className="kb-route-loading__logo" />
-          <div className="kb-boot-splash__spinner" />
-        </>
-      ) : (
-        <div className="kb-boot-splash__spinner" />
-      )}
+    <div className="kb-route-loading kb-route-loading--light" aria-live="polite" aria-busy="true">
+      <div className="kb-boot-splash__spinner" />
     </div>
   );
 }
@@ -194,19 +191,31 @@ export function useAppNavigation() {
   return ctx;
 }
 
+/**
+ * Apply slide only after pathname actually changes, and only for forward drills.
+ * Setting direction on the previous page used to re-trigger CSS animation → double slide.
+ * Back never gets a slide class.
+ */
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { direction } = useAppNavigation();
+  const pathKey = normalizePath(pathname);
+  const directionRef = useRef(direction);
+  directionRef.current = direction;
+
+  const [episode, setEpisode] = useState({ path: pathKey, cls: "" });
+
+  // Sync during render when the path changes so back never mounts with a stale forward class.
+  if (episode.path !== pathKey) {
+    const cls =
+      directionRef.current === "forward"
+        ? "kb-page-transition kb-page-transition--forward"
+        : "";
+    setEpisode({ path: pathKey, cls });
+  }
+
   return (
-    <div
-      key={pathname}
-      className={cn(
-        "kb-page-transition",
-        direction === "forward" && "kb-page-transition--forward",
-        direction === "back" && "kb-page-transition--back",
-        direction === "fade" && "kb-page-transition--fade",
-      )}
-    >
+    <div key={episode.path} className={cn("flex flex-col gap-3", episode.cls || undefined)}>
       {children}
     </div>
   );

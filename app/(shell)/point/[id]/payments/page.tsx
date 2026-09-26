@@ -86,7 +86,7 @@ export default function PointPaymentsPage() {
           {error ? <Alert status="danger">{t("payments.loadError")}</Alert> : null}
 
           {!isLoading && !error ? (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {items.map((payment) => (
                 <li key={payment.id}>
                   <PaymentCard payment={payment} pointId={pointId} timeZone={point?.timezone} />

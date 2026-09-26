@@ -63,8 +63,9 @@ export default function PointHubPage() {
   ].filter((section) => section.visible);
 
   const { data: dashboard, isLoading, error } = useQuery({
-    queryKey: ["operator", "dashboard"],
-    queryFn: () => api.get<DashboardSummary>("dashboard"),
+    queryKey: ["operator", "dashboard", pointId],
+    queryFn: () => api.get<DashboardSummary>("dashboard", { point_id: pointId }),
+    enabled: Boolean(pointId),
   });
 
   const stats = dashboard
@@ -97,7 +98,7 @@ export default function PointHubPage() {
       {error ? <Alert status="danger">{t("pointHub.dashboardError")}</Alert> : null}
 
       {stats.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           {stats.map((item) => (
             <SoftCard key={item.label} padding="sm">
               <div className="text-xl font-bold tabular-nums text-brand-text">{item.value}</div>
@@ -109,7 +110,7 @@ export default function PointHubPage() {
 
       {!hasAnyService ? <Alert status="danger">{t("common.accessDenied")}</Alert> : null}
 
-      <nav className="flex flex-col gap-2" aria-label="Point sections">
+      <nav className="flex flex-col gap-2.5" aria-label="Point sections">
         {sections.map((section) => (
           <MenuLink
             key={section.key}

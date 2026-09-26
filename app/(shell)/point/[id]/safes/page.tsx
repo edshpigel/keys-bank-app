@@ -1,11 +1,12 @@
 "use client";
 
 import { Alert, Spinner } from "@heroui/react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
+import { SafeUnitSheet } from "@/components/safe-unit-sheet";
 import { api, type PointListItem, type SafeGridItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
@@ -14,7 +15,6 @@ function safeDotClass(item: SafeGridItem) {
   if (item.operational_status === "disabled" || !item) {
     return "bg-[#9a9a9a]";
   }
-  // Keys: only free (green) vs booked (red). No luggage-style orange reserve.
   if (item.busy) {
     return "bg-[#e14343]";
   }
@@ -31,6 +31,8 @@ export default function PointSafesPage() {
   const t = useT();
   const params = useParams<{ id: string }>();
   const pointId = params.id;
+  const queryClient = useQueryClient();
+  const [selected, setSelected] = useState<SafeGridItem | null>(null);
 
   const { data: points } = useQuery({
     queryKey: ["operator", "points"],
@@ -47,6 +49,13 @@ export default function PointSafesPage() {
   });
 
   const pointName = point?.name_short || t("pointHub.titleFallback");
+
+  function onActionDone() {
+    void queryClient.invalidateQueries({ queryKey: ["operator", "safes", pointId] });
+    void queryClient.invalidateQueries({
+      queryKey: ["operator", "unit-reservations", selected?.unit_id],
+    });
+  }
 
   return (
     <>
@@ -79,13 +88,14 @@ export default function PointSafesPage() {
                 const disabled = item.operational_status === "disabled";
                 return (
                   <li key={item.unit_id}>
-                    <Link
-                      href={`/unit/${item.unit_id}/?point=${pointId}`}
+                    <button
+                      type="button"
                       aria-label={`${t("safes.unitTitle", { label: item.label })} (${status})`}
                       className={cn(
                         "relative flex aspect-square min-h-[52px] w-full items-center justify-center rounded-lg border-[1.5px] border-brand-text bg-white text-sm font-extrabold text-brand-text transition active:scale-[0.97]",
                         disabled && "bg-[#d8d8d8] opacity-70",
                       )}
+                      onClick={() => setSelected(item)}
                     >
                       <span
                         className={cn(
@@ -100,7 +110,7 @@ export default function PointSafesPage() {
                           {t("safes.pmr")}
                         </span>
                       ) : null}
-                    </Link>
+                    </button>
                   </li>
                 );
               })}
@@ -108,6 +118,20 @@ export default function PointSafesPage() {
           )
         ) : null}
       </div>
+
+      <SafeUnitSheet
+        open={Boolean(selected)}
+        safe={selected}
+        pointId={pointId}
+        onClose={() => setSelected(null)}
+        onActionDone={onActionDone}
+        onSafeUpdated={(next) => {
+          setSelected(next);
+          void queryClient.setQueryData<SafeGridItem[]>(["operator", "safes", pointId], (prev) =>
+            (prev ?? []).map((row) => (row.unit_id === next.unit_id ? { ...row, ...next } : row)),
+          );
+        }}
+      />
     </>
   );
 }

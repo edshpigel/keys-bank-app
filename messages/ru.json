@@ -209,6 +209,10 @@
     "pmr": "PMR",
     "unitTitle": "Сейф {label}",
     "reservations": "Брони сейфа",
+    "ordersEmpty": "Нет броней в этом сейфе",
+    "lockOff": "Не для бронирования",
+    "settingsSaved": "Настройки сохранены",
+    "settingsSaveError": "Не удалось сохранить настройки",
     "markEmpty": "Отметить пустым",
     "markEmptyDone": "Отмечен пустым"
   },

@@ -209,6 +209,10 @@
     "pmr": "PMR",
     "unitTitle": "Coffre {label}",
     "reservations": "Réservations du coffre",
+    "ordersEmpty": "Aucune réservation pour ce coffre",
+    "lockOff": "Non réservable",
+    "settingsSaved": "Paramètres enregistrés",
+    "settingsSaveError": "Impossible d'enregistrer",
     "markEmpty": "Marquer vide",
     "markEmptyDone": "Coffre marqué vide"
   },

@@ -153,7 +153,7 @@ export default function PointReservationsPage() {
         allowedServices={allowedServices}
       />
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2.5">
         <SoftCard padding="sm" className="flex flex-col gap-1">
           <div className="text-[11px] text-brand-text-muted">{t("reservations.statTotal")}</div>
           <div className="text-xl font-bold tabular-nums text-brand-text">
@@ -196,7 +196,7 @@ export default function PointReservationsPage() {
             endReached={onEndReached}
             computeItemKey={(_index, item: ReservationListItem) => item.id}
             itemContent={(_index, item) => (
-              <div className="pb-2.5">
+              <div className="pb-3">
                 <ReservationCard item={item} pointId={pointId} timeZone={point?.timezone} />
               </div>
             )}

@@ -10,6 +10,7 @@ import { ListRow } from "@/components/list-row";
 import { api } from "@/lib/api";
 import type { ClientListItem } from "@/lib/clients";
 import { clientDisplayName, clientInitials, formatDateShort } from "@/lib/format";
+import { formatBookingsCount } from "@/lib/i18n";
 import { useI18n, useT } from "@/lib/i18n-provider";
 
 export default function ClientsPage() {
@@ -59,13 +60,13 @@ export default function ClientsPage() {
       {error ? <Alert status="danger">{t("clients.loadError")}</Alert> : null}
 
       {!isLoading && !error ? (
-        <ul className="flex flex-col gap-2.5 pb-2">
+        <ul className="flex flex-col gap-3 pb-2">
           {items.map((item) => {
             const name = clientDisplayName(item.first_name, item.last_name, item.email);
             const initials = clientInitials(item.first_name, item.last_name, item.email);
             const subtitle = [
               item.email,
-              t("clients.bookingsCount", { count: item.reservations_count }),
+              formatBookingsCount(item.reservations_count, locale, t),
               item.last_starts_at
                 ? formatDateShort(item.last_starts_at, locale)
                 : null,

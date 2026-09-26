@@ -57,3 +57,18 @@ export function translate(
     raw,
   );
 }
+
+/** Russian-friendly booking count label. */
+export function formatBookingsCount(
+  count: number,
+  locale: Locale,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  if (locale !== "ru") return t("clients.bookingsCount", { count });
+  const n = Math.abs(count) % 100;
+  const n1 = n % 10;
+  if (n > 10 && n < 20) return `${count} бронирований`;
+  if (n1 === 1) return `${count} бронирование`;
+  if (n1 >= 2 && n1 <= 4) return `${count} бронирования`;
+  return `${count} бронирований`;
+}

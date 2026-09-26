@@ -18,6 +18,7 @@ import {
   formatDateShort,
   formatTime,
 } from "@/lib/format";
+import { formatBookingsCount } from "@/lib/i18n";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { reservationStatusVisual } from "@/lib/reservations";
 
@@ -81,7 +82,7 @@ export default function ClientDetailPage() {
               <div className="truncate text-xs text-brand-text-muted">{client.phone_e164}</div>
             ) : null}
             <div className="mt-1 text-[11px] text-brand-text-muted">
-              {t("clients.bookingsCount", { count: client.reservations_count })}
+              {formatBookingsCount(client.reservations_count, locale, t)}
             </div>
           </div>
         </SoftCard>
@@ -91,7 +92,7 @@ export default function ClientDetailPage() {
         <div className="flex flex-col gap-4 pb-2">
           <div className="space-y-2">
             <SectionLabel>{t("clients.sectionBookings")}</SectionLabel>
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col gap-3">
               {data.reservations.map((item) => {
                 const visual = reservationStatusVisual(item);
                 return (
