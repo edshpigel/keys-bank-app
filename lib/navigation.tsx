@@ -192,9 +192,8 @@ export function useAppNavigation() {
 }
 
 /**
- * Apply slide only after pathname actually changes, and only for forward drills.
+ * Apply slide only after pathname actually changes.
  * Setting direction on the previous page used to re-trigger CSS animation → double slide.
- * Back never gets a slide class.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -205,12 +204,15 @@ export function PageTransition({ children }: { children: ReactNode }) {
 
   const [episode, setEpisode] = useState({ path: pathKey, cls: "" });
 
-  // Sync during render when the path changes so back never mounts with a stale forward class.
+  // Sync during render when the path changes so we never animate the outgoing page.
   if (episode.path !== pathKey) {
+    const dir = directionRef.current;
     const cls =
-      directionRef.current === "forward"
+      dir === "forward"
         ? "kb-page-transition kb-page-transition--forward"
-        : "";
+        : dir === "back"
+          ? "kb-page-transition kb-page-transition--back"
+          : "";
     setEpisode({ path: pathKey, cls });
   }
 
