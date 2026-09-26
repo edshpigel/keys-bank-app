@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Spinner } from "@heroui/react";
+import { Button, Spinner, Switch } from "@heroui/react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +15,12 @@ import {
 } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { idempotencyKey } from "@/lib/idempotency";
-import { canOccupyLocker, luggageHistoryLabel, luggageStateLabel } from "@/lib/luggage";
+import {
+  canOccupyLocker,
+  isLuggageDisabled,
+  luggageHistoryLabel,
+  luggageStateLabel,
+} from "@/lib/luggage";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
 
@@ -26,6 +31,7 @@ type Props = {
   timeZone?: string;
   onClose: () => void;
   onActionDone: () => void;
+  onLockUpdated?: (next: LuggageGridItem) => void;
 };
 
 type MainTab = "orders" | "history";
@@ -37,18 +43,24 @@ export function LuggageLockSheet({
   timeZone,
   onClose,
   onActionDone,
+  onLockUpdated,
 }: Props) {
   const t = useT();
   const { locale } = useI18n();
   const [mainTab, setMainTab] = useState<MainTab>("orders");
   const [reservationId, setReservationId] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [editPmr, setEditPmr] = useState(false);
+  const [editDisabled, setEditDisabled] = useState(false);
 
   useEffect(() => {
+    if (!open || !lock) return;
     setReservationId("");
     setMessage(null);
     setMainTab("orders");
-  }, [lock?.unit_id]);
+    setEditPmr(Boolean(lock.is_pmr));
+    setEditDisabled(isLuggageDisabled(lock));
+  }, [open, lock?.unit_id]);
 
   const { data: unitOrders } = useQuery({
     queryKey: ["operator", "unit-reservations", lock?.unit_id],
@@ -111,11 +123,66 @@ export function LuggageLockSheet({
     },
   });
 
+  const settingsMutation = useMutation({
+    mutationFn: async (next: { is_pmr: boolean; disabled: boolean }) => {
+      if (!lock) throw new Error("no_lock");
+      const keepReserved = !next.disabled && lock.operational_status === "reserved";
+      const keepPending = !next.disabled && lock.operational_status === "pending_empty";
+      return api.patch<{
+        is_pmr: boolean;
+        is_active: boolean;
+        operational_status: string;
+      }>(`units/${lock.unit_id}`, {
+        is_pmr: next.is_pmr,
+        is_active: !next.disabled,
+        operational_status: next.disabled
+          ? "disabled"
+          : keepPending
+            ? "pending_empty"
+            : keepReserved
+              ? "reserved"
+              : "active",
+      });
+    },
+    onSuccess: (data, vars) => {
+      setEditPmr(vars.is_pmr);
+      setEditDisabled(vars.disabled);
+      setMessage({ kind: "success", text: t("luggage.settingsSaved") });
+      if (lock && onLockUpdated) {
+        onLockUpdated({
+          ...lock,
+          is_pmr: data.is_pmr,
+          is_active: data.is_active,
+          operational_status: data.operational_status,
+        });
+      }
+      onActionDone();
+    },
+    onError: (err) => {
+      if (lock) {
+        setEditPmr(Boolean(lock.is_pmr));
+        setEditDisabled(isLuggageDisabled(lock));
+      }
+      setMessage({
+        kind: "error",
+        text: err instanceof ApiError ? err.message : t("luggage.settingsSaveError"),
+      });
+    },
+  });
+
   if (!open || !lock) return null;
 
-  const showOccupy = canOccupyLocker(lock);
-  const statusText = luggageStateLabel(lock, t);
-  const statusMeta = lock.api_stateno ? `${statusText} (stateno=${lock.api_stateno})` : statusText;
+  const showOccupy = canOccupyLocker({ ...lock, is_pmr: editPmr, is_active: !editDisabled, operational_status: editDisabled ? "disabled" : lock.operational_status });
+  const statusLock: LuggageGridItem = {
+    ...lock,
+    is_pmr: editPmr,
+    is_active: !editDisabled,
+    operational_status: editDisabled ? "disabled" : lock.operational_status,
+  };
+  const statusText = luggageStateLabel(statusLock, t);
+  const statusMeta =
+    !editDisabled && lock.api_stateno ? `${statusText} (stateno=${lock.api_stateno})` : statusText;
+  const settingsBusy = settingsMutation.isPending;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
@@ -136,7 +203,48 @@ export function LuggageLockSheet({
           </h2>
           <p className="mt-1 text-center text-sm text-brand-text-muted">{statusMeta}</p>
 
-          {lock.operational_status === "reserved" ? (
+          <div className="mt-3 space-y-2.5 rounded-xl border border-brand-border bg-brand-cream/60 px-3.5 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-brand-text-muted">{t("luggage.pmr")}</span>
+              <Switch
+                isSelected={editPmr}
+                isDisabled={settingsBusy || mutation.isPending}
+                onChange={(value) => {
+                  setEditPmr(value);
+                  setMessage(null);
+                  settingsMutation.mutate({ is_pmr: value, disabled: editDisabled });
+                }}
+                aria-label={t("luggage.pmr")}
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-brand-text-muted">{t("luggage.lockOff")}</span>
+              <Switch
+                isSelected={editDisabled}
+                isDisabled={settingsBusy || mutation.isPending}
+                onChange={(value) => {
+                  setEditDisabled(value);
+                  setMessage(null);
+                  settingsMutation.mutate({ is_pmr: editPmr, disabled: value });
+                }}
+                aria-label={t("luggage.lockOff")}
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
+            </div>
+          </div>
+
+          {lock.operational_status === "reserved" && !editDisabled ? (
             <div className="mt-3 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-3.5 py-3 text-center">
               <p className="text-xs font-medium uppercase tracking-wide text-brand-text-muted">
                 {t("luggage.reservedFor")}
@@ -280,7 +388,7 @@ export function LuggageLockSheet({
             </div>
           )}
 
-          {mutation.isPending ? (
+          {mutation.isPending || settingsBusy ? (
             <div className="mt-3 flex justify-center">
               <Spinner size="sm" className="text-brand-gold" />
             </div>
@@ -291,7 +399,7 @@ export function LuggageLockSheet({
           <Button
             variant="secondary"
             className="h-12 w-full border-brand-text font-semibold"
-            isDisabled={mutation.isPending}
+            isDisabled={mutation.isPending || settingsBusy}
             onPress={() => {
               setMessage(null);
               mutation.mutate({ action: "clear" });
@@ -302,7 +410,7 @@ export function LuggageLockSheet({
           <Button
             variant="primary"
             className="h-12 w-full bg-brand-gold font-semibold text-white"
-            isDisabled={mutation.isPending}
+            isDisabled={mutation.isPending || settingsBusy}
             onPress={() => {
               setMessage(null);
               mutation.mutate({ action: "open" });

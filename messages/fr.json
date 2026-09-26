@@ -44,6 +44,7 @@
     "showPassword": "Afficher",
     "hidePassword": "Masquer",
     "forbidden": "Accès réservé aux opérateurs",
+    "accessDenied": "Vous n'avez pas accès à cette section",
     "invalidCredentials": "Identifiants invalides",
     "rateLimited": "Trop de tentatives, patientez",
     "serverError": "Erreur serveur, réessayez"
@@ -236,7 +237,12 @@
     "historyOpened": "Ouvert via réservation №{id}",
     "historyOpenedGeneric": "Ouvert",
     "historyTakenOut": "Récupéré",
-    "refresh": "Actualiser"
+    "refresh": "Actualiser",
+    "disabled": "Désactivé",
+    "pmr": "PMR",
+    "lockOff": "Éteint",
+    "settingsSaved": "Paramètres enregistrés",
+    "settingsSaveError": "Impossible d'enregistrer"
   },
   "payments": {
     "title": "Paiements",

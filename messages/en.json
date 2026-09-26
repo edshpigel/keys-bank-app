@@ -44,6 +44,7 @@
     "showPassword": "Show",
     "hidePassword": "Hide",
     "forbidden": "Operators only",
+    "accessDenied": "You don't have access to this section",
     "invalidCredentials": "Invalid credentials",
     "rateLimited": "Too many attempts, please wait",
     "serverError": "Server error, try again"
@@ -236,7 +237,12 @@
     "historyOpened": "Opened via booking №{id}",
     "historyOpenedGeneric": "Opened",
     "historyTakenOut": "Picked up",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "disabled": "Disabled",
+    "pmr": "PMR",
+    "lockOff": "Turned off",
+    "settingsSaved": "Settings saved",
+    "settingsSaveError": "Could not save settings"
   },
   "payments": {
     "title": "Payments",

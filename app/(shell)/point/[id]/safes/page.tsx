@@ -37,11 +37,13 @@ export default function PointSafesPage() {
     queryFn: () => api.get<PointListItem[]>("points"),
   });
   const point = points?.find((p) => p.id === pointId);
+  const allowed = new Set(point?.allowed_services ?? ["keys", "luggage"]);
+  const hasKeysAccess = !point || allowed.has("keys");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["operator", "safes", pointId],
     queryFn: () => api.get<SafeGridItem[]>(`points/${pointId}/safes`),
-    enabled: Boolean(pointId),
+    enabled: Boolean(pointId) && hasKeysAccess,
   });
 
   return (
@@ -54,14 +56,16 @@ export default function PointSafesPage() {
         size="lg"
       />
       <div className="flex-1">
-        {isLoading ? (
+        {!hasKeysAccess ? <Alert status="danger">{t("common.accessDenied")}</Alert> : null}
+
+        {hasKeysAccess && isLoading ? (
           <div className="flex justify-center py-16">
             <Spinner size="lg" className="text-brand-gold" />
           </div>
         ) : null}
-        {error ? <Alert status="danger">{t("safes.loadError")}</Alert> : null}
+        {hasKeysAccess && error ? <Alert status="danger">{t("safes.loadError")}</Alert> : null}
 
-        {!isLoading && !error ? (
+        {hasKeysAccess && !isLoading && !error ? (
           (data ?? []).length === 0 ? (
             <p className="py-8 text-center text-sm text-brand-text-muted">{t("safes.empty")}</p>
           ) : (
@@ -76,7 +80,7 @@ export default function PointSafesPage() {
                       aria-label={`${t("safes.unitTitle", { label: item.label })} (${status})`}
                       className={cn(
                         "relative flex aspect-square min-h-[52px] w-full items-center justify-center rounded-lg border-[1.5px] border-brand-text bg-white text-sm font-extrabold text-brand-text transition active:scale-[0.97]",
-                        disabled && "opacity-70",
+                        disabled && "bg-[#d8d8d8] opacity-70",
                       )}
                     >
                       <span

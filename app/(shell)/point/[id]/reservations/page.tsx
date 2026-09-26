@@ -54,7 +54,18 @@ export default function PointReservationsPage() {
     queryFn: () => api.get<PointListItem[]>("points"),
   });
   const point = points?.find((p) => p.id === pointId);
+  const allowedServices = useMemo(
+    () => point?.allowed_services ?? (["keys", "luggage"] as Array<"keys" | "luggage">),
+    [point?.allowed_services],
+  );
   const subtitle = [point?.city, point?.name_short].filter(Boolean).join(", ");
+
+  useEffect(() => {
+    if (filters.service === "all") return;
+    if (!allowedServices.includes(filters.service)) {
+      setFilters((prev) => ({ ...prev, service: "all" }));
+    }
+  }, [allowedServices, filters.service]);
 
   const listQuery = useInfiniteQuery({
     queryKey: [
@@ -130,7 +141,11 @@ export default function PointReservationsPage() {
         size="lg"
       />
 
-      <ReservationListFilters value={filters} onChange={setFilters} />
+      <ReservationListFilters
+        value={filters}
+        onChange={setFilters}
+        allowedServices={allowedServices}
+      />
 
       <div className="grid grid-cols-3 gap-2">
         <SoftCard padding="sm" className="flex flex-col gap-1">

@@ -14,7 +14,7 @@ import {
   type LuggageGridResponse,
   type PointListItem,
 } from "@/lib/api";
-import { luggageDotClass, luggageStateLabel } from "@/lib/luggage";
+import { luggageDotClass, isLuggageDisabled, luggageStateLabel } from "@/lib/luggage";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
 
@@ -106,6 +106,7 @@ function LuggageBoard({
                 }
 
                 const active = selectedId === item.unit_id;
+                const disabled = isLuggageDisabled(item);
                 return (
                   <div key={item.unit_id} className="contents">
                     {gap}
@@ -116,6 +117,7 @@ function LuggageBoard({
                       className={cn(
                         "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-md border-2 border-[#1d2327] bg-white text-sm font-extrabold text-brand-text transition active:scale-[0.97]",
                         active && "bg-[rgba(195,161,100,0.32)]",
+                        disabled && "bg-[#d8d8d8] opacity-70",
                       )}
                       onClick={() => onSelect(item)}
                     >
@@ -126,7 +128,12 @@ function LuggageBoard({
                         )}
                         aria-hidden
                       />
-                      {item.label}
+                      <span className={cn(disabled && "text-brand-text-muted")}>{item.label}</span>
+                      {item.is_pmr ? (
+                        <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-semibold text-brand-text-muted">
+                          {t("luggage.pmr")}
+                        </span>
+                      ) : null}
                     </button>
                   </div>
                 );
@@ -151,11 +158,13 @@ export default function PointLuggagePage() {
     queryFn: () => api.get<PointListItem[]>("points"),
   });
   const point = points?.find((p) => p.id === pointId);
+  const allowed = new Set(point?.allowed_services ?? ["keys", "luggage"]);
+  const hasLuggageAccess = !point || allowed.has("luggage");
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["operator", "luggage", pointId],
     queryFn: () => api.get<LuggageGridResponse>(`points/${pointId}/luggage-locks`),
-    enabled: Boolean(pointId),
+    enabled: Boolean(pointId) && hasLuggageAccess,
   });
 
   const items = data?.items ?? [];
@@ -177,59 +186,78 @@ export default function PointLuggagePage() {
         size="lg"
       />
       <div className="flex-1">
-        <div className="mb-4 flex justify-end">
-          <Button
-            variant="secondary"
-            className="h-9 px-4 text-sm"
-            isDisabled={isFetching}
-            onPress={() => void refetch()}
-          >
-            {isFetching ? t("common.loading") : t("luggage.refresh")}
-          </Button>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" className="text-brand-gold" />
-          </div>
+        {!hasLuggageAccess ? (
+          <Alert status="danger">{t("common.accessDenied")}</Alert>
         ) : null}
-        {error ? <Alert status="danger">{t("luggage.loadError")}</Alert> : null}
 
-        {!isLoading && !error ? (
-          items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-brand-text-muted">{t("luggage.empty")}</p>
-          ) : hasBoard ? (
-            <div className="rounded-2xl border border-brand-border bg-white p-3 shadow-sm">
-              <LuggageBoard
-                cells={cells}
-                items={items}
-                selectedId={selected?.unit_id}
-                onSelect={setSelected}
-              />
+        {hasLuggageAccess ? (
+          <>
+            <div className="mb-4 flex justify-end">
+              <Button
+                variant="secondary"
+                className="h-9 px-4 text-sm"
+                isDisabled={isFetching}
+                onPress={() => void refetch()}
+              >
+                {isFetching ? t("common.loading") : t("luggage.refresh")}
+              </Button>
             </div>
-          ) : (
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(52px,1fr))] gap-[7px]">
-              {items.map((item) => (
-                <li key={item.unit_id}>
-                  <button
-                    type="button"
-                    aria-label={`${t("luggage.sheetTitle", { label: item.label })} (${luggageStateLabel(item, t)})`}
-                    className="relative flex aspect-square min-h-[52px] w-full items-center justify-center rounded-lg border-[1.5px] border-brand-text bg-white text-sm font-extrabold transition active:scale-[0.97]"
-                    onClick={() => setSelected(item)}
-                  >
-                    <span
-                      className={cn(
-                        "absolute right-1.5 top-1.5 h-[9px] w-[9px] rounded-full shadow-[0_0_0_1.5px_#141414]",
-                        luggageDotClass(item),
-                      )}
-                      aria-hidden
-                    />
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )
+
+            {isLoading ? (
+              <div className="flex justify-center py-16">
+                <Spinner size="lg" className="text-brand-gold" />
+              </div>
+            ) : null}
+            {error ? <Alert status="danger">{t("luggage.loadError")}</Alert> : null}
+
+            {!isLoading && !error ? (
+              items.length === 0 ? (
+                <p className="py-8 text-center text-sm text-brand-text-muted">{t("luggage.empty")}</p>
+              ) : hasBoard ? (
+                <div className="rounded-2xl border border-brand-border bg-white p-3 shadow-sm">
+                  <LuggageBoard
+                    cells={cells}
+                    items={items}
+                    selectedId={selected?.unit_id}
+                    onSelect={setSelected}
+                  />
+                </div>
+              ) : (
+                <ul className="grid grid-cols-[repeat(auto-fill,minmax(52px,1fr))] gap-[7px]">
+                  {items.map((item) => {
+                    const disabled = isLuggageDisabled(item);
+                    return (
+                      <li key={item.unit_id}>
+                        <button
+                          type="button"
+                          aria-label={`${t("luggage.sheetTitle", { label: item.label })} (${luggageStateLabel(item, t)})`}
+                          className={cn(
+                            "relative flex aspect-square min-h-[52px] w-full items-center justify-center rounded-lg border-[1.5px] border-brand-text bg-white text-sm font-extrabold transition active:scale-[0.97]",
+                            disabled && "bg-[#d8d8d8] opacity-70",
+                          )}
+                          onClick={() => setSelected(item)}
+                        >
+                          <span
+                            className={cn(
+                              "absolute right-1.5 top-1.5 h-[9px] w-[9px] rounded-full shadow-[0_0_0_1.5px_#141414]",
+                              luggageDotClass(item),
+                            )}
+                            aria-hidden
+                          />
+                          <span className={cn(disabled && "text-brand-text-muted")}>{item.label}</span>
+                          {item.is_pmr ? (
+                            <span className="absolute bottom-1 left-0 right-0 text-center text-[8px] font-semibold text-brand-text-muted">
+                              {t("luggage.pmr")}
+                            </span>
+                          ) : null}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )
+            ) : null}
+          </>
         ) : null}
       </div>
 
@@ -240,6 +268,7 @@ export default function PointLuggagePage() {
         timeZone={point?.timezone}
         onClose={() => setSelected(null)}
         onActionDone={onActionDone}
+        onLockUpdated={setSelected}
       />
     </>
   );

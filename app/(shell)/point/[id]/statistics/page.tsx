@@ -2,7 +2,7 @@
 
 import { Alert, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppHeader } from "@/components/app-header";
@@ -16,6 +16,7 @@ import {
   fetchPointStatistics,
   presetRange,
   type StatisticsFilters,
+  type StatisticsService,
 } from "@/lib/statistics";
 
 function KpiCard({ label, value }: { label: string; value: string }) {
@@ -54,6 +55,21 @@ export default function PointStatisticsPage() {
     queryFn: () => api.get<PointListItem[]>("points"),
   });
   const point = points?.find((p) => p.id === pointId);
+  const allowedServices = useMemo(
+    () => point?.allowed_services ?? (["keys", "luggage"] as Array<"keys" | "luggage">),
+    [point?.allowed_services],
+  );
+
+  useEffect(() => {
+    if (allowedServices.length !== 1) return;
+    const only = allowedServices[0] as StatisticsService;
+    if (filters.service !== only) {
+      setFilters((prev) => ({ ...prev, service: only }));
+    }
+    if (queryFilters.service !== only) {
+      setQueryFilters((prev) => ({ ...prev, service: only }));
+    }
+  }, [allowedServices, filters.service, queryFilters.service]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["operator", "statistics", pointId, queryFilters],
@@ -158,6 +174,7 @@ export default function PointStatisticsPage() {
           }}
           onApply={applyFilters}
           loading={loading}
+          allowedServices={allowedServices}
         />
 
         {loading && !data ? (

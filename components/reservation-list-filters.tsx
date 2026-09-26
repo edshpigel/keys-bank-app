@@ -11,24 +11,34 @@ import { cn } from "@/lib/cn";
 type Props = {
   value: ReservationFilters;
   onChange: (next: ReservationFilters) => void;
+  allowedServices?: Array<"keys" | "luggage">;
   className?: string;
 };
 
-export function ReservationListFilters({ value, onChange, className }: Props) {
+export function ReservationListFilters({ value, onChange, allowedServices, className }: Props) {
   const t = useT();
+  const allowed = new Set(allowedServices ?? ["keys", "luggage"]);
 
   const services = [
     { key: "all" as const, label: t("reservations.serviceAll") },
-    {
-      key: "keys" as const,
-      label: t("reservations.serviceKeys"),
-      icon: <KeyRound className="h-3 w-3 text-brand-gold-dark" strokeWidth={2} />,
-    },
-    {
-      key: "luggage" as const,
-      label: t("reservations.serviceLuggage"),
-      icon: <Luggage className="h-3 w-3 text-[#3D6B8E]" strokeWidth={2} />,
-    },
+    ...(allowed.has("keys")
+      ? [
+          {
+            key: "keys" as const,
+            label: t("reservations.serviceKeys"),
+            icon: <KeyRound className="h-3 w-3 text-brand-gold-dark" strokeWidth={2} />,
+          },
+        ]
+      : []),
+    ...(allowed.has("luggage")
+      ? [
+          {
+            key: "luggage" as const,
+            label: t("reservations.serviceLuggage"),
+            icon: <Luggage className="h-3 w-3 text-[#3D6B8E]" strokeWidth={2} />,
+          },
+        ]
+      : []),
   ];
 
   const statuses = [
@@ -40,19 +50,21 @@ export function ReservationListFilters({ value, onChange, className }: Props) {
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex flex-wrap gap-1.5">
-        {services.map((item) => (
-          <FilterChip
-            key={item.key}
-            size="sm"
-            active={value.service === item.key}
-            onClick={() => onChange({ ...value, service: item.key })}
-          >
-            {"icon" in item && value.service !== item.key ? item.icon : null}
-            {item.label}
-          </FilterChip>
-        ))}
-      </div>
+      {services.length > 2 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {services.map((item) => (
+            <FilterChip
+              key={item.key}
+              size="sm"
+              active={value.service === item.key}
+              onClick={() => onChange({ ...value, service: item.key })}
+            >
+              {"icon" in item && value.service !== item.key ? item.icon : null}
+              {item.label}
+            </FilterChip>
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-1.5">
         {statuses.map((item) => (

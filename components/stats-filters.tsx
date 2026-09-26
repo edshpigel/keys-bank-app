@@ -24,10 +24,21 @@ type Props = {
   onChange: (next: StatisticsFilters) => void;
   onApply: () => void;
   loading?: boolean;
+  allowedServices?: Array<"keys" | "luggage">;
 };
 
-export function StatsFiltersPanel({ value, activePreset, onPreset, onChange, onApply, loading }: Props) {
+export function StatsFiltersPanel({
+  value,
+  activePreset,
+  onPreset,
+  onChange,
+  onApply,
+  loading,
+  allowedServices,
+}: Props) {
   const t = useT();
+  const allowed = new Set(allowedServices ?? ["keys", "luggage"]);
+  const showServiceFilter = allowed.has("keys") && allowed.has("luggage");
 
   return (
     <div className="space-y-3 rounded-2xl border border-brand-border bg-white p-4 shadow-sm">
@@ -67,18 +78,20 @@ export function StatsFiltersPanel({ value, activePreset, onPreset, onChange, onA
         </label>
       </div>
 
-      <label className="block space-y-1.5">
-        <span className="text-xs font-medium text-brand-text-muted">{t("stats.serviceFilter")}</span>
-        <select
-          className={fieldClass}
-          value={value.service}
-          onChange={(e) => onChange({ ...value, service: e.target.value as StatisticsService })}
-        >
-          <option value="all">{t("stats.serviceAll")}</option>
-          <option value="keys">{t("stats.serviceKeys")}</option>
-          <option value="luggage">{t("stats.serviceLuggage")}</option>
-        </select>
-      </label>
+      {showServiceFilter ? (
+        <label className="block space-y-1.5">
+          <span className="text-xs font-medium text-brand-text-muted">{t("stats.serviceFilter")}</span>
+          <select
+            className={fieldClass}
+            value={value.service}
+            onChange={(e) => onChange({ ...value, service: e.target.value as StatisticsService })}
+          >
+            <option value="all">{t("stats.serviceAll")}</option>
+            <option value="keys">{t("stats.serviceKeys")}</option>
+            <option value="luggage">{t("stats.serviceLuggage")}</option>
+          </select>
+        </label>
+      ) : null}
 
       <Button variant="primary" className="w-full" onPress={onApply} isDisabled={loading}>
         {t("stats.apply")}

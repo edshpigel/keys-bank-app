@@ -44,6 +44,7 @@
     "showPassword": "Показать",
     "hidePassword": "Скрыть",
     "forbidden": "Доступ только для операторов",
+    "accessDenied": "Нет доступа к этому разделу",
     "invalidCredentials": "Неверные данные",
     "rateLimited": "Слишком много попыток, подождите",
     "serverError": "Ошибка сервера, попробуйте снова"
@@ -236,7 +237,12 @@
     "historyOpened": "Открыт через бронирование №{id}",
     "historyOpenedGeneric": "Открыт",
     "historyTakenOut": "Забрали",
-    "refresh": "Обновить"
+    "refresh": "Обновить",
+    "disabled": "Отключена",
+    "pmr": "PMR",
+    "lockOff": "Выключен",
+    "settingsSaved": "Настройки сохранены",
+    "settingsSaveError": "Не удалось сохранить"
   },
   "payments": {
     "title": "Платежи",

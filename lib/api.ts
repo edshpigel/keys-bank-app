@@ -340,6 +340,8 @@ export type UnitReservationItem = {
 export type LuggageGridItem = {
   unit_id: string;
   label: string;
+  is_pmr?: boolean;
+  is_active?: boolean;
   busy: boolean;
   operational_status?: string | null;
   api_lock_state: string | null;
