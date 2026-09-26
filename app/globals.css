@@ -339,13 +339,3 @@ html.kb-tg .kb-bottom-nav-wrap {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .kb-sheet-panel,
-  .kb-page-transition {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-}
-
