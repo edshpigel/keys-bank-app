@@ -34,7 +34,6 @@ import {
   isTelegramWebApp,
 } from "@/lib/telegram";
 import { useBrowserAutofillSync } from "@/lib/use-browser-autofill-sync";
-import { useAppNavigation } from "@/lib/navigation";
 
 const loginTabsClass = [
   "grid w-full grid-cols-2 gap-1 rounded-2xl border border-brand-border bg-brand-cream p-1",
@@ -53,7 +52,6 @@ const loginTabsClass = [
 
 function LoginForm() {
   const t = useT();
-  const { navigate } = useAppNavigation();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<"code" | "password">("password");
   const [email, setEmail] = useState("");
@@ -67,11 +65,13 @@ function LoginForm() {
   const [codeSent, setCodeSent] = useState(false);
   const [tgChecking, setTgChecking] = useState(true);
 
+  /** Hard nav: soft router.replace often stalls after Set-Cookie (Telegram / PWA). */
   const goNext = useCallback(() => {
     clearSignedOut();
     const next = searchParams.get("next") || "/points/";
-    navigate(next.startsWith("/") ? next : "/points/", { replace: true });
-  }, [navigate, searchParams]);
+    const href = next.startsWith("/") ? next : "/points/";
+    window.location.replace(href);
+  }, [searchParams]);
 
   useEffect(() => {
     let cancelled = false;
