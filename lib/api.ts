@@ -387,6 +387,8 @@ export type LockActionItem = {
   reservation_public_id?: string | null;
   action: string;
   created_at: string | null;
+  actor_email?: string | null;
+  label?: string | null;
 };
 
 export type PaymentListItem = {

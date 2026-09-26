@@ -123,6 +123,7 @@ export function LuggageLockSheet({
       setEditPmr(vars.is_pmr);
       setEditDisabled(vars.disabled);
       setMessage({ kind: "success", text: t("luggage.settingsSaved") });
+      void refetchActions();
       if (lock && onLockUpdated) {
         onLockUpdated({
           ...lock,
@@ -320,6 +321,9 @@ export function LuggageLockSheet({
                       <div className="mt-1 text-sm font-medium text-brand-text">
                         {luggageHistoryLabel(row.action, t, row.reservation_public_id)}
                       </div>
+                      {row.actor_email ? (
+                        <div className="mt-0.5 truncate text-xs text-brand-text-muted">{row.actor_email}</div>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

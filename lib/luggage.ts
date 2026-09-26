@@ -41,5 +41,10 @@ export function luggageHistoryLabel(
   if (key === "clear" || key === "takeout" || key === "take_out") {
     return t("luggage.historyTakenOut");
   }
+  if (key === "disable") return t("luggage.historyDisabled");
+  if (key === "enable") return t("luggage.historyEnabled");
+  if (key === "pmr_on") return t("luggage.historyPmrOn");
+  if (key === "pmr_off") return t("luggage.historyPmrOff");
+  if (key === "mark_empty") return t("luggage.historyMarkEmpty");
   return action;
 }
