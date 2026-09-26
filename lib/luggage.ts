@@ -27,13 +27,6 @@ export function luggageDotClass(item: LuggageGridItem): string {
   return "bg-[#9aa0a6]";
 }
 
-export function canOccupyLocker(item: LuggageGridItem): boolean {
-  if (isLuggageDisabled(item)) return false;
-  if (item.operational_status === "reserved") return false;
-  const stateno = String(item.api_stateno ?? "").trim();
-  return !item.busy && stateno !== "2" && stateno !== "3";
-}
-
 export function luggageHistoryLabel(
   action: string,
   t: (k: string, vars?: Record<string, string | number>) => string,

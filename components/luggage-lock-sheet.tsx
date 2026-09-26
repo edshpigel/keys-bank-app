@@ -10,13 +10,11 @@ import {
   api,
   type LockActionItem,
   type LuggageGridItem,
-  type ReservationsListResponse,
   type UnitReservationItem,
 } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { idempotencyKey } from "@/lib/idempotency";
 import {
-  canOccupyLocker,
   isLuggageDisabled,
   luggageHistoryLabel,
   luggageStateLabel,
@@ -48,14 +46,12 @@ export function LuggageLockSheet({
   const t = useT();
   const { locale } = useI18n();
   const [mainTab, setMainTab] = useState<MainTab>("orders");
-  const [reservationId, setReservationId] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [editPmr, setEditPmr] = useState(false);
   const [editDisabled, setEditDisabled] = useState(false);
 
   useEffect(() => {
     if (!open || !lock) return;
-    setReservationId("");
     setMessage(null);
     setMainTab("orders");
     setEditPmr(Boolean(lock.is_pmr));
@@ -67,21 +63,6 @@ export function LuggageLockSheet({
     queryFn: () => api.get<UnitReservationItem[]>(`units/${lock!.unit_id}/reservations`),
     enabled: open && Boolean(lock?.unit_id),
   });
-
-  const { data: reservations } = useQuery({
-    queryKey: ["operator", "luggage-reservations", pointId],
-    queryFn: async () => {
-      const page = await api.get<ReservationsListResponse>(`points/${pointId}/reservations`, {
-        status: "active",
-        service: "luggage",
-        limit: 100,
-      });
-      return page.items;
-    },
-    enabled: open && Boolean(pointId),
-  });
-
-  const luggageBookings = reservations ?? [];
 
   const { data: lockActions, refetch: refetchActions } = useQuery({
     queryKey: ["operator", "lock-actions", pointId],
@@ -98,17 +79,11 @@ export function LuggageLockSheet({
   );
 
   const mutation = useMutation({
-    mutationFn: async ({
-      action,
-      reservation_id,
-    }: {
-      action: "open" | "clear" | "occupy";
-      reservation_id?: string;
-    }) => {
+    mutationFn: async ({ action }: { action: "open" | "clear" }) => {
       if (!lock) throw new Error("no_lock");
-      const path = `luggage-locks/${lock.unit_id}/${action}`;
-      const body = reservation_id ? { reservation_id } : undefined;
-      return api.post(path, body, { "Idempotency-Key": idempotencyKey() });
+      return api.post(`luggage-locks/${lock.unit_id}/${action}`, undefined, {
+        "Idempotency-Key": idempotencyKey(),
+      });
     },
     onSuccess: () => {
       setMessage({ kind: "success", text: t("luggage.actionSuccess") });
@@ -172,7 +147,6 @@ export function LuggageLockSheet({
 
   if (!open || !lock) return null;
 
-  const showOccupy = canOccupyLocker({ ...lock, is_pmr: editPmr, is_active: !editDisabled, operational_status: editDisabled ? "disabled" : lock.operational_status });
   const statusLock: LuggageGridItem = {
     ...lock,
     is_pmr: editPmr,
@@ -331,41 +305,6 @@ export function LuggageLockSheet({
                   ))}
                 </ul>
               )}
-
-              {showOccupy ? (
-                <div className="space-y-2 border-t border-brand-border pt-3">
-                  <label className="block text-sm font-medium text-brand-text-muted">
-                    {t("luggage.occupySelect")}
-                  </label>
-                  {luggageBookings.length === 0 ? (
-                    <p className="text-sm text-brand-text-muted">{t("luggage.occupyNoBooking")}</p>
-                  ) : (
-                    <select
-                      className="h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm"
-                      value={reservationId}
-                      onChange={(e) => setReservationId(e.target.value)}
-                    >
-                      <option value="">{t("luggage.occupyPlaceholder")}</option>
-                      {luggageBookings.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          #{r.public_id} · {r.email}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  <Button
-                    variant="primary"
-                    className="h-11 w-full bg-brand-gold text-white"
-                    isDisabled={mutation.isPending || !reservationId}
-                    onPress={() => {
-                      setMessage(null);
-                      mutation.mutate({ action: "occupy", reservation_id: reservationId });
-                    }}
-                  >
-                    {mutation.isPending ? t("common.loading") : t("luggage.occupy")}
-                  </Button>
-                </div>
-              ) : null}
             </div>
           ) : (
             <div className="mt-4">
