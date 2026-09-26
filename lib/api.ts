@@ -399,6 +399,12 @@ export type PaymentListItem = {
   amount_ttc_cents: number;
   currency: string;
   tariff_code: string | null;
+  paid_at?: string | null;
+  created_at?: string | null;
+  refunded_at?: string | null;
+  service_type?: "keys" | "luggage" | string | null;
+  reservation_public_id?: number | string | null;
+  reservation_email?: string | null;
 };
 
 export type PaymentReceipt = {

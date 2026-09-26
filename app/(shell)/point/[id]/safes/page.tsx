@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { api, type PointListItem, type SafeGridItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
@@ -46,14 +46,18 @@ export default function PointSafesPage() {
     enabled: Boolean(pointId) && hasKeysAccess,
   });
 
+  const pointName = point?.name_short || t("pointHub.titleFallback");
+
   return (
     <>
-      <AppHeader
-        title={t("safes.title")}
-        subtitle={point?.name_short}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          { label: pointName, href: `/point/${pointId}/` },
+          { label: t("safes.title") },
+        ]}
         backHref={`/point/${pointId}/`}
         backSide="end"
-        size="lg"
       />
       <div className="flex-1">
         {!hasKeysAccess ? <Alert status="danger">{t("common.accessDenied")}</Alert> : null}

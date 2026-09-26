@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { ClientActivityList } from "@/components/client-activity-list";
 import { ClientBookingActions } from "@/components/client-booking-actions";
 import { SoftCard } from "@/components/ui/soft-card";
@@ -52,12 +52,13 @@ export default function ClientDetailPage() {
 
   return (
     <>
-      <AppHeader
-        title={name || t("clients.detailTitle")}
-        subtitle={client?.email}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.clients"), href: "/clients/" },
+          { label: name || t("clients.detailTitle") },
+        ]}
         backHref="/clients/"
-        backSide="start"
-        size="lg"
+        backSide="end"
       />
 
       {isLoading ? (

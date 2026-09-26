@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AppHeader } from "@/components/app-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ListRow } from "@/components/list-row";
+import { ServiceAccessBadges } from "@/components/service-filter-chips";
 import { api, type PointListItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 
@@ -20,7 +21,6 @@ export default function PointsPage() {
     <>
       <AppHeader
         title={t("points.title")}
-        subtitle={t("points.subtitle")}
         showLogout
         size="lg"
         trailing={<LanguageSwitcher compact />}
@@ -41,7 +41,9 @@ export default function PointsPage() {
               <ListRow
                 href={`/point/${point.id}/`}
                 title={point.name_short || point.slug}
-                subtitle={point.city}
+                subtitleSlot={
+                  <ServiceAccessBadges services={point.allowed_services ?? []} />
+                }
               />
             </li>
           ))}

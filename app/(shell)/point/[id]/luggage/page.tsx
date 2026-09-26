@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { LuggageLockSheet } from "@/components/luggage-lock-sheet";
 import {
   api,
@@ -176,14 +176,18 @@ export default function PointLuggagePage() {
     void queryClient.invalidateQueries({ queryKey: ["operator", "lock-actions", pointId] });
   }
 
+  const pointName = point?.name_short || t("pointHub.titleFallback");
+
   return (
     <>
-      <AppHeader
-        title={t("luggage.title")}
-        subtitle={point?.name_short}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          { label: pointName, href: `/point/${pointId}/` },
+          { label: t("luggage.title") },
+        ]}
         backHref={`/point/${pointId}/`}
         backSide="end"
-        size="lg"
       />
       <div className="flex-1">
         {!hasLuggageAccess ? (

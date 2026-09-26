@@ -143,6 +143,11 @@ select:-webkit-autofill {
   pointer-events: auto;
 }
 
+.kb-route-loading--light {
+  background: rgb(237 228 211 / 0.55);
+  backdrop-filter: blur(2px);
+}
+
 .kb-route-loading__logo {
   width: 180px;
   height: auto;
@@ -244,3 +249,103 @@ html.kb-tg .kb-bottom-nav-wrap {
   background-color: var(--color-brand-text-muted);
   opacity: 0.45;
 }
+
+/* Bottom sheets: slide up / down */
+.kb-sheet-panel {
+  transform: translateY(110%);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+@media (min-width: 640px) {
+  .kb-sheet-panel {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+    transition:
+      transform 280ms cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 220ms ease;
+  }
+}
+
+.kb-sheet-panel--in {
+  transform: translateY(0);
+}
+
+@media (min-width: 640px) {
+  .kb-sheet-panel--in {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.kb-sheet-panel--out {
+  transform: translateY(110%);
+}
+
+@media (min-width: 640px) {
+  .kb-sheet-panel--out {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+/* Hierarchical page transitions */
+.kb-page-transition {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-fill-mode: both;
+}
+
+.kb-page-transition--forward {
+  animation-name: kb-page-slide-in-right;
+}
+
+.kb-page-transition--back {
+  animation-name: kb-page-slide-in-left;
+}
+
+.kb-page-transition--fade {
+  animation-name: kb-page-fade;
+}
+
+@keyframes kb-page-slide-in-right {
+  from {
+    transform: translateX(28%);
+    opacity: 0.35;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes kb-page-slide-in-left {
+  from {
+    transform: translateX(-18%);
+    opacity: 0.35;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes kb-page-fade {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-sheet-panel,
+  .kb-page-transition {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+

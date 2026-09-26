@@ -1,21 +1,27 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Alert, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
+import { ServiceFilterChips, type ServiceFilterValue } from "@/components/service-filter-chips";
 import { StatsBarChart, thinSeriesLabels } from "@/components/stats-bar-chart";
 import { StatsDonutChart } from "@/components/stats-donut-chart";
-import { StatsFiltersPanel } from "@/components/stats-filters";
+import { DateFilterBar } from "@/components/ui/date-filter-bar";
 import { api, type PointListItem } from "@/lib/api";
-import { formatMoney } from "@/lib/format";
+import { formatDateShort, formatMoney } from "@/lib/format";
 import { useI18n, useT } from "@/lib/i18n-provider";
 import {
+  buildDateRange,
+  customDateRange,
+  type DateRangeFilter,
+} from "@/lib/reservations";
+import { ShellStickyBar } from "@/lib/shell-sticky";
+import {
   fetchPointStatistics,
-  presetRange,
-  type StatisticsFilters,
   type StatisticsService,
 } from "@/lib/statistics";
 
@@ -28,7 +34,7 @@ function KpiCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-[14px] border border-brand-border bg-white p-4">
       <h3 className="mb-3 text-sm font-semibold text-brand-text">{title}</h3>
@@ -37,18 +43,20 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
+function resolveStatsRange(range: DateRangeFilter): { from: string; to: string } {
+  if (range.from && range.to) return { from: range.from, to: range.to };
+  const fallback = buildDateRange("month");
+  return { from: fallback.from, to: fallback.to };
+}
+
 export default function PointStatisticsPage() {
   const t = useT();
   const { locale } = useI18n();
   const params = useParams<{ id: string }>();
   const pointId = params.id;
 
-  const [activePreset, setActivePreset] = useState<number | null>(30);
-  const [filters, setFilters] = useState<StatisticsFilters>(() => ({
-    ...presetRange(30),
-    service: "all",
-  }));
-  const [queryFilters, setQueryFilters] = useState(filters);
+  const [dateRange, setDateRange] = useState<DateRangeFilter>(() => buildDateRange("month"));
+  const [service, setService] = useState<ServiceFilterValue>("all");
 
   const { data: points } = useQuery({
     queryKey: ["operator", "points"],
@@ -61,20 +69,29 @@ export default function PointStatisticsPage() {
   );
 
   useEffect(() => {
-    if (allowedServices.length !== 1) return;
-    const only = allowedServices[0] as StatisticsService;
-    if (filters.service !== only) {
-      setFilters((prev) => ({ ...prev, service: only }));
+    if (allowedServices.length === 1) {
+      setService(allowedServices[0]);
+      return;
     }
-    if (queryFilters.service !== only) {
-      setQueryFilters((prev) => ({ ...prev, service: only }));
+    if (service !== "all" && !allowedServices.includes(service)) {
+      setService("all");
     }
-  }, [allowedServices, filters.service, queryFilters.service]);
+  }, [allowedServices, service]);
 
-  const { data, isLoading, error, refetch, isFetching } = useQuery({
+  const apiRange = useMemo(() => resolveStatsRange(dateRange), [dateRange]);
+  const queryFilters = useMemo(
+    () => ({
+      dateFrom: apiRange.from,
+      dateTo: apiRange.to,
+      service: service as StatisticsService,
+    }),
+    [apiRange.from, apiRange.to, service],
+  );
+
+  const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["operator", "statistics", pointId, queryFilters],
     queryFn: () => fetchPointStatistics(pointId, queryFilters),
-    enabled: Boolean(pointId),
+    enabled: Boolean(pointId) && allowedServices.length > 0,
   });
 
   const currency = data?.summary.currency ?? "EUR";
@@ -90,9 +107,9 @@ export default function PointStatisticsPage() {
         ? [
             { key: "keys", count: data.by_service.keys },
             { key: "luggage", count: data.by_service.luggage },
-          ]
+          ].filter((item) => allowedServices.includes(item.key as "keys" | "luggage"))
         : [],
-    [data],
+    [data, allowedServices],
   );
 
   const statusItems = useMemo(
@@ -110,7 +127,7 @@ export default function PointStatisticsPage() {
 
   const periodItems = useMemo(
     () => (data?.by_period ?? []).map((row) => ({ key: row.period, count: row.count })),
-    [data?.by_period],
+    [data],
   );
 
   const serviceLabels = useMemo(
@@ -139,109 +156,116 @@ export default function PointStatisticsPage() {
     return map;
   }, [data?.by_period, t]);
 
-  const applyPreset = (days: number) => {
-    const next = { ...filters, ...presetRange(days) };
-    setActivePreset(days);
-    setFilters(next);
-    setQueryFilters(next);
-  };
-
-  const applyFilters = () => {
-    setActivePreset(null);
-    setQueryFilters(filters);
-    void refetch();
-  };
+  const dateFromLabel = formatDateShort(`${apiRange.from}T12:00:00`, locale);
+  const dateToLabel =
+    apiRange.from === apiRange.to ? null : formatDateShort(`${apiRange.to}T12:00:00`, locale);
 
   const loading = isLoading || isFetching;
+  const pointName = point?.name_short || t("pointHub.titleFallback");
 
   return (
     <>
-      <AppHeader
-        title={t("pointHub.sections.statistics")}
-        subtitle={point?.name_short}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          { label: pointName, href: `/point/${pointId}/` },
+          { label: t("pointHub.sections.statistics") },
+        ]}
         backHref={`/point/${pointId}/`}
         backSide="end"
-        size="lg"
       />
-      <div className="flex-1 space-y-4 pb-2">
-        <StatsFiltersPanel
-          value={filters}
-          activePreset={activePreset}
-          onPreset={applyPreset}
-          onChange={(next) => {
-            setActivePreset(null);
-            setFilters(next);
-          }}
-          onApply={applyFilters}
-          loading={loading}
-          allowedServices={allowedServices}
-        />
 
-        {loading && !data ? (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" className="text-brand-gold" />
-          </div>
-        ) : null}
+      {allowedServices.length === 0 ? (
+        <Alert status="danger">{t("common.accessDenied")}</Alert>
+      ) : (
+        <>
+          <ServiceFilterChips
+            value={service}
+            onChange={setService}
+            allowedServices={allowedServices}
+          />
 
-        {error ? <Alert status="danger">{t("stats.loadError")}</Alert> : null}
-
-        {data ? (
-          <div className={loading ? "pointer-events-none space-y-4 opacity-60" : "space-y-4"}>
-            <div className="grid grid-cols-2 gap-3">
-              <KpiCard label={t("stats.bookings")} value={String(data.summary.bookings)} />
-              <KpiCard
-                label={t("stats.revenue")}
-                value={formatMoney(data.summary.revenue_cents, currency, locale)}
-              />
-              <KpiCard
-                label={t("stats.averageCheck")}
-                value={formatMoney(data.summary.average_check_cents, currency, locale)}
-              />
-              <KpiCard label={t("stats.activeNow")} value={String(data.summary.active_now)} />
-              <KpiCard label={t("stats.renewals")} value={String(data.summary.renewals)} />
-              <KpiCard label={t("stats.refunds")} value={String(data.summary.refunds)} />
+          {loading && !data ? (
+            <div className="flex justify-center py-16">
+              <Spinner size="lg" className="text-brand-gold" />
             </div>
+          ) : null}
 
-            <ChartCard title={t("stats.chartBookings")}>
-              <StatsBarChart labels={seriesLabels} values={data.series.bookings} />
-            </ChartCard>
+          {error ? <Alert status="danger">{t("stats.loadError")}</Alert> : null}
 
-            <ChartCard title={t("stats.chartRevenue")}>
-              <StatsBarChart
-                labels={seriesLabels}
-                values={data.series.revenue_cents}
-                barClassName="bg-brand-text/70"
-                formatValue={(cents) => formatMoney(cents, currency, locale)}
-              />
-            </ChartCard>
+          {data ? (
+            <div className={loading ? "pointer-events-none space-y-4 opacity-60" : "space-y-4"}>
+              <div className="grid grid-cols-2 gap-3">
+                <KpiCard label={t("stats.bookings")} value={String(data.summary.bookings)} />
+                <KpiCard
+                  label={t("stats.revenue")}
+                  value={formatMoney(data.summary.revenue_cents, currency, locale)}
+                />
+                <KpiCard
+                  label={t("stats.averageCheck")}
+                  value={formatMoney(data.summary.average_check_cents, currency, locale)}
+                />
+                <KpiCard label={t("stats.activeNow")} value={String(data.summary.active_now)} />
+                <KpiCard label={t("stats.renewals")} value={String(data.summary.renewals)} />
+                <KpiCard label={t("stats.refunds")} value={String(data.summary.refunds)} />
+              </div>
 
-            <ChartCard title={t("stats.chartService")}>
-              <StatsDonutChart
-                items={serviceItems}
-                labels={serviceLabels}
-                center={String(data.summary.bookings)}
-              />
-            </ChartCard>
+              <ChartCard title={t("stats.chartBookings")}>
+                <StatsBarChart labels={seriesLabels} values={data.series.bookings} />
+              </ChartCard>
 
-            <ChartCard title={t("stats.chartStatus")}>
-              <StatsDonutChart
-                items={statusItems}
-                labels={statusLabels}
-                center={String(data.summary.bookings)}
-              />
-            </ChartCard>
-
-            {periodItems.length > 0 ? (
-              <ChartCard title={t("stats.chartPeriod")}>
+              <ChartCard title={t("stats.chartRevenue")}>
                 <StatsBarChart
-                  labels={periodItems.map((i) => periodLabels[i.key] ?? i.key)}
-                  values={periodItems.map((i) => i.count)}
+                  labels={seriesLabels}
+                  values={data.series.revenue_cents}
+                  barClassName="bg-brand-text/70"
+                  formatValue={(cents) => formatMoney(cents, currency, locale)}
                 />
               </ChartCard>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+
+              {serviceItems.length > 1 || (serviceItems[0]?.count ?? 0) > 0 ? (
+                <ChartCard title={t("stats.chartService")}>
+                  <StatsDonutChart
+                    items={serviceItems}
+                    labels={serviceLabels}
+                    center={String(data.summary.bookings)}
+                  />
+                </ChartCard>
+              ) : null}
+
+              <ChartCard title={t("stats.chartStatus")}>
+                <StatsDonutChart
+                  items={statusItems}
+                  labels={statusLabels}
+                  center={String(data.summary.bookings)}
+                />
+              </ChartCard>
+
+              {periodItems.length > 0 ? (
+                <ChartCard title={t("stats.chartPeriod")}>
+                  <StatsBarChart
+                    labels={periodItems.map((i) => periodLabels[i.key] ?? i.key)}
+                    values={periodItems.map((i) => i.count)}
+                  />
+                </ChartCard>
+              ) : null}
+            </div>
+          ) : null}
+
+          <ShellStickyBar>
+            <DateFilterBar
+              hideAllPreset
+              dateFromLabel={dateFromLabel}
+              dateToLabel={dateToLabel}
+              preset={dateRange.preset === "all" ? "month" : dateRange.preset}
+              fromValue={apiRange.from}
+              toValue={apiRange.to}
+              onPresetChange={(preset) => setDateRange(buildDateRange(preset === "all" ? "month" : preset))}
+              onApplyCustomRange={(from, to) => setDateRange(customDateRange(from, to))}
+            />
+          </ShellStickyBar>
+        </>
+      )}
     </>
   );
 }

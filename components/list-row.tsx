@@ -8,11 +8,13 @@ type ListRowProps = {
   href: string;
   title: string;
   subtitle?: string;
+  /** Custom content under the title (e.g. service badges). */
+  subtitleSlot?: ReactNode;
   leading?: ReactNode;
   className?: string;
 };
 
-export function ListRow({ href, title, subtitle, leading, className }: ListRowProps) {
+export function ListRow({ href, title, subtitle, subtitleSlot, leading, className }: ListRowProps) {
   return (
     <Link
       href={href}
@@ -24,9 +26,10 @@ export function ListRow({ href, title, subtitle, leading, className }: ListRowPr
       {leading ? <div className="shrink-0">{leading}</div> : null}
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold leading-snug text-brand-text">{title}</div>
-        {subtitle ? (
-          <div className="mt-0.5 text-xs text-brand-text-muted">{subtitle}</div>
-        ) : null}
+        {subtitleSlot ??
+          (subtitle ? (
+            <div className="mt-0.5 text-xs text-brand-text-muted">{subtitle}</div>
+          ) : null)}
       </div>
       <ChevronRight className="h-4 w-4 shrink-0 text-brand-text-muted" strokeWidth={2} />
     </Link>

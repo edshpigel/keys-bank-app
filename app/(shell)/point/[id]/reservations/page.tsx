@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Virtuoso } from "react-virtuoso";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { ReservationCard } from "@/components/reservation-card";
 import { ReservationListFilters } from "@/components/reservation-list-filters";
 import { DateFilterBar } from "@/components/ui/date-filter-bar";
@@ -58,9 +58,13 @@ export default function PointReservationsPage() {
     () => point?.allowed_services ?? (["keys", "luggage"] as Array<"keys" | "luggage">),
     [point?.allowed_services],
   );
-  const subtitle = [point?.city, point?.name_short].filter(Boolean).join(", ");
+  const pointName = point?.name_short || t("pointHub.titleFallback");
 
   useEffect(() => {
+    if (allowedServices.length === 1 && filters.service === "all") {
+      setFilters((prev) => ({ ...prev, service: allowedServices[0] }));
+      return;
+    }
     if (filters.service === "all") return;
     if (!allowedServices.includes(filters.service)) {
       setFilters((prev) => ({ ...prev, service: "all" }));
@@ -133,12 +137,14 @@ export default function PointReservationsPage() {
 
   return (
     <>
-      <AppHeader
-        title={t("reservations.title")}
-        subtitle={subtitle || point?.name_short}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          { label: pointName, href: `/point/${pointId}/` },
+          { label: t("reservations.title") },
+        ]}
         backHref={`/point/${pointId}/`}
         backSide="end"
-        size="lg"
       />
 
       <ReservationListFilters

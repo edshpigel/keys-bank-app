@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
   ApiError,
   api,
@@ -49,6 +50,11 @@ export function LuggageLockSheet({
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [editPmr, setEditPmr] = useState(false);
   const [editDisabled, setEditDisabled] = useState(false);
+  const [cachedLock, setCachedLock] = useState<LuggageGridItem | null>(lock);
+
+  useEffect(() => {
+    if (lock) setCachedLock(lock);
+  }, [lock]);
 
   useEffect(() => {
     if (!open || !lock) return;
@@ -56,12 +62,14 @@ export function LuggageLockSheet({
     setMainTab("orders");
     setEditPmr(Boolean(lock.is_pmr));
     setEditDisabled(isLuggageDisabled(lock));
-  }, [open, lock?.unit_id]);
+  }, [open, lock]);
+
+  const activeLock = lock ?? cachedLock;
 
   const { data: unitOrders } = useQuery({
-    queryKey: ["operator", "unit-reservations", lock?.unit_id],
-    queryFn: () => api.get<UnitReservationItem[]>(`units/${lock!.unit_id}/reservations`),
-    enabled: open && Boolean(lock?.unit_id),
+    queryKey: ["operator", "unit-reservations", activeLock?.unit_id],
+    queryFn: () => api.get<UnitReservationItem[]>(`units/${activeLock!.unit_id}/reservations`),
+    enabled: open && Boolean(activeLock?.unit_id),
   });
 
   const { data: lockActions, refetch: refetchActions } = useQuery({
@@ -73,9 +81,9 @@ export function LuggageLockSheet({
   const unitHistory = useMemo(
     () =>
       (lockActions ?? [])
-        .filter((row) => row.unit_id === lock?.unit_id)
+        .filter((row) => row.unit_id === activeLock?.unit_id)
         .slice(0, 40),
-    [lockActions, lock?.unit_id],
+    [lockActions, activeLock?.unit_id],
   );
 
   const mutation = useMutation({
@@ -146,35 +154,35 @@ export function LuggageLockSheet({
     },
   });
 
-  if (!open || !lock) return null;
+  if (!activeLock) return null;
 
   const statusLock: LuggageGridItem = {
-    ...lock,
+    ...activeLock,
     is_pmr: editPmr,
     is_active: !editDisabled,
-    operational_status: editDisabled ? "disabled" : lock.operational_status,
+    operational_status: editDisabled ? "disabled" : activeLock.operational_status,
   };
   const statusText = luggageStateLabel(statusLock, t);
   const statusMeta =
-    !editDisabled && lock.api_stateno ? `${statusText} (stateno=${lock.api_stateno})` : statusText;
+    !editDisabled && activeLock.api_stateno
+      ? `${statusText} (stateno=${activeLock.api_stateno})`
+      : statusText;
   const settingsBusy = settingsMutation.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-      <button type="button" className="absolute inset-0" aria-label={t("common.back")} onClick={onClose} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={cn(
-          "relative z-10 flex w-full max-w-md flex-col rounded-t-2xl bg-white shadow-xl",
-          "safe-bottom max-h-[88dvh]",
-        )}
-      >
+    <BottomSheet
+      open={open && Boolean(lock)}
+      onClose={onClose}
+      closeLabel={t("common.back")}
+      closeDisabled={mutation.isPending || settingsBusy}
+      zIndexClassName="z-50"
+      panelClassName="flex max-h-[88dvh] flex-col overflow-hidden"
+    >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-brand-border" aria-hidden />
 
         <div className="overflow-y-auto px-5 pb-4 pt-3">
           <h2 className="text-center text-lg font-bold text-brand-text">
-            {t("luggage.sheetTitle", { label: lock.label })}
+            {t("luggage.sheetTitle", { label: activeLock.label })}
           </h2>
           <p className="mt-1 text-center text-sm text-brand-text-muted">{statusMeta}</p>
 
@@ -219,21 +227,21 @@ export function LuggageLockSheet({
             </div>
           </div>
 
-          {lock.operational_status === "reserved" && !editDisabled ? (
+          {activeLock.operational_status === "reserved" && !editDisabled ? (
             <div className="mt-3 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-3.5 py-3 text-center">
               <p className="text-xs font-medium uppercase tracking-wide text-brand-text-muted">
                 {t("luggage.reservedFor")}
               </p>
               <p className="mt-1 text-sm font-semibold text-brand-text">
-                {lock.reserved_public_id ? `#${lock.reserved_public_id}` : "—"}
-                {lock.reserved_client_name ? ` · ${lock.reserved_client_name}` : ""}
+                {activeLock.reserved_public_id ? `#${activeLock.reserved_public_id}` : "—"}
+                {activeLock.reserved_client_name ? ` · ${activeLock.reserved_client_name}` : ""}
               </p>
-              {lock.reserved_email ? (
-                <p className="mt-0.5 truncate text-xs text-brand-text-muted">{lock.reserved_email}</p>
+              {activeLock.reserved_email ? (
+                <p className="mt-0.5 truncate text-xs text-brand-text-muted">{activeLock.reserved_email}</p>
               ) : null}
-              {lock.reserved_reservation_id ? (
+              {activeLock.reserved_reservation_id ? (
                 <Link
-                  href={`/reservation/${lock.reserved_reservation_id}/?point=${pointId}`}
+                  href={`/reservation/${activeLock.reserved_reservation_id}/?point=${pointId}`}
                   className="mt-2 inline-block text-xs font-semibold text-brand-gold"
                 >
                   {t("luggage.openBooking")}
@@ -362,7 +370,6 @@ export function LuggageLockSheet({
             {t("luggage.open")}
           </Button>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

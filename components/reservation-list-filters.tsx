@@ -1,9 +1,8 @@
 "use client";
 
-import { KeyRound, Luggage } from "lucide-react";
-
 import { FilterChip } from "@/components/ui/filter-chip";
 import { ReservationSearchField } from "@/components/reservation-card";
+import { ServiceFilterChips } from "@/components/service-filter-chips";
 import type { ReservationFilters } from "@/lib/reservations";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
@@ -17,29 +16,6 @@ type Props = {
 
 export function ReservationListFilters({ value, onChange, allowedServices, className }: Props) {
   const t = useT();
-  const allowed = new Set(allowedServices ?? ["keys", "luggage"]);
-
-  const services = [
-    { key: "all" as const, label: t("reservations.serviceAll") },
-    ...(allowed.has("keys")
-      ? [
-          {
-            key: "keys" as const,
-            label: t("reservations.serviceKeys"),
-            icon: <KeyRound className="h-3 w-3 text-brand-gold-dark" strokeWidth={2} />,
-          },
-        ]
-      : []),
-    ...(allowed.has("luggage")
-      ? [
-          {
-            key: "luggage" as const,
-            label: t("reservations.serviceLuggage"),
-            icon: <Luggage className="h-3 w-3 text-[#3D6B8E]" strokeWidth={2} />,
-          },
-        ]
-      : []),
-  ];
 
   const statuses = [
     { key: "all" as const, label: t("reservations.statusAll") },
@@ -50,21 +26,11 @@ export function ReservationListFilters({ value, onChange, allowedServices, class
 
   return (
     <div className={cn("space-y-3", className)}>
-      {services.length > 2 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {services.map((item) => (
-            <FilterChip
-              key={item.key}
-              size="sm"
-              active={value.service === item.key}
-              onClick={() => onChange({ ...value, service: item.key })}
-            >
-              {"icon" in item && value.service !== item.key ? item.icon : null}
-              {item.label}
-            </FilterChip>
-          ))}
-        </div>
-      ) : null}
+      <ServiceFilterChips
+        value={value.service}
+        onChange={(service) => onChange({ ...value, service })}
+        allowedServices={allowedServices}
+      />
 
       <div className="flex flex-wrap gap-1.5">
         {statuses.map((item) => (

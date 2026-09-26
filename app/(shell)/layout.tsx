@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { PullToRefresh } from "@/components/pull-to-refresh";
+import { PageTransition } from "@/lib/navigation";
 import { ShellStickyTargetProvider } from "@/lib/shell-sticky";
 
 export default function ShellLayout({ children }: { children: ReactNode }) {
@@ -42,7 +43,9 @@ function ShellLayoutInner({
     <div className="kb-app-bg flex justify-center">
       <div className="flex min-h-dvh w-full max-w-[990px] flex-col px-5">
         <PullToRefresh className="safe-top flex-1 pb-3">
-          <div className="flex flex-col gap-3 pt-3">{children}</div>
+          <div className="flex flex-col gap-3 pt-3">
+            <PageTransition>{children}</PageTransition>
+          </div>
         </PullToRefresh>
 
         <div className="sticky bottom-0 z-30 bg-brand-page-bg/95 backdrop-blur-md">

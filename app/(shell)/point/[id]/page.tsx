@@ -5,7 +5,7 @@ import { BarChart3, CalendarDays, CreditCard, Lock, Luggage } from "lucide-react
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { MenuLink } from "@/components/menu-link";
 import { SoftCard } from "@/components/ui/soft-card";
 import { api, type DashboardSummary, type PointListItem } from "@/lib/api";
@@ -22,6 +22,7 @@ export default function PointHubPage() {
   });
   const point = points?.find((p) => p.id === pointId);
   const allowed = new Set(point?.allowed_services ?? ["keys", "luggage"]);
+  const hasAnyService = allowed.size > 0;
 
   const sections = [
     {
@@ -29,40 +30,37 @@ export default function PointHubPage() {
       label: t("pointHub.sections.reservations"),
       href: `/point/${pointId}/reservations/`,
       icon: CalendarDays,
+      visible: hasAnyService,
     },
     {
       key: "payments",
       label: t("pointHub.sections.payments"),
       href: `/point/${pointId}/payments/`,
       icon: CreditCard,
+      visible: hasAnyService,
     },
-    ...(allowed.has("keys")
-      ? [
-          {
-            key: "safes",
-            label: t("pointHub.sections.safes"),
-            href: `/point/${pointId}/safes/`,
-            icon: Lock,
-          },
-        ]
-      : []),
-    ...(allowed.has("luggage")
-      ? [
-          {
-            key: "luggage",
-            label: t("pointHub.sections.luggage"),
-            href: `/point/${pointId}/luggage/`,
-            icon: Luggage,
-          },
-        ]
-      : []),
+    {
+      key: "safes",
+      label: t("pointHub.sections.safes"),
+      href: `/point/${pointId}/safes/`,
+      icon: Lock,
+      visible: allowed.has("keys"),
+    },
+    {
+      key: "luggage",
+      label: t("pointHub.sections.luggage"),
+      href: `/point/${pointId}/luggage/`,
+      icon: Luggage,
+      visible: allowed.has("luggage"),
+    },
     {
       key: "statistics",
       label: t("pointHub.sections.statistics"),
       href: `/point/${pointId}/statistics/`,
       icon: BarChart3,
+      visible: hasAnyService,
     },
-  ];
+  ].filter((section) => section.visible);
 
   const { data: dashboard, isLoading, error } = useQuery({
     queryKey: ["operator", "dashboard"],
@@ -78,14 +76,17 @@ export default function PointHubPage() {
       ]
     : [];
 
+  const pointName = point?.name_short || t("pointHub.titleFallback");
+
   return (
     <>
-      <AppHeader
-        title={point?.name_short || t("pointHub.titleFallback")}
-        subtitle={point?.city}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          { label: pointName },
+        ]}
         backHref="/points/"
         backSide="end"
-        size="lg"
       />
 
       {isLoading ? (
@@ -105,6 +106,8 @@ export default function PointHubPage() {
           ))}
         </div>
       ) : null}
+
+      {!hasAnyService ? <Alert status="danger">{t("common.accessDenied")}</Alert> : null}
 
       <nav className="flex flex-col gap-2" aria-label="Point sections">
         {sections.map((section) => (

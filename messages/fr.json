@@ -12,7 +12,8 @@
     "soon": "Bientôt",
     "offlineBanner": "Hors ligne — l'application est en cache, les données live nécessitent le réseau",
     "pullToRefresh": "Tirez pour actualiser",
-    "refreshing": "Actualisation…"
+    "refreshing": "Actualisation…",
+    "accessDenied": "Vous n'avez pas accès à cette section"
   },
   "nav": {
     "points": "Points",

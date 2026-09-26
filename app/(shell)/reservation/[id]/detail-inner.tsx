@@ -11,7 +11,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { ReservationActionsPanel } from "@/components/reservation-actions-panel";
 import { ReservationActivityList } from "@/components/reservation-activity-list";
 import { SectionLabel, SoftCard } from "@/components/ui/soft-card";
@@ -67,15 +67,24 @@ export default function ReservationDetailInner() {
       : data?.safe_label
         ? [data.safe_label]
         : [];
-  const address = [point?.name_short, point?.city].filter(Boolean).join(", ");
+  const address = point?.name_short || "";
+  const pointName = point?.name_short || t("pointHub.titleFallback");
 
   return (
     <>
-      <AppHeader
-        title={data ? `#${data.public_id}` : t("reservation.title")}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          ...(pointId
+            ? [
+                { label: pointName, href: `/point/${pointId}/` },
+                { label: t("reservations.title"), href: `/point/${pointId}/reservations/` },
+              ]
+            : []),
+          { label: data ? `#${data.public_id}` : t("reservation.title") },
+        ]}
         backHref={backHref}
-        backSide="start"
-        size="md"
+        backSide="end"
         trailing={
           visual ? (
             <StatusBadge tone={visual.tone} className="shrink-0">

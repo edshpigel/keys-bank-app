@@ -1,21 +1,17 @@
-import type { PaymentListItem, ReservationListItem } from "@/lib/api";
+import type { PaymentListItem } from "@/lib/api";
 
 export type PaymentFilters = {
   kind: "all" | "initial" | "extend";
   status: "all" | "paid" | "refunded";
   query: string;
+  service: "all" | "keys" | "luggage";
 };
 
 export function paymentKindGroup(kind: string): "initial" | "extend" {
   return kind === "initial" ? "initial" : "extend";
 }
 
-export function filterPayments(
-  items: PaymentListItem[],
-  reservations: ReservationListItem[],
-  filters: PaymentFilters,
-): PaymentListItem[] {
-  const byId = new Map(reservations.map((r) => [r.id, r]));
+export function filterPayments(items: PaymentListItem[], filters: PaymentFilters): PaymentListItem[] {
   const q = filters.query.trim().toLowerCase();
 
   return items.filter((payment) => {
@@ -23,13 +19,13 @@ export function filterPayments(
     if (filters.kind === "initial" && group !== "initial") return false;
     if (filters.kind === "extend" && group !== "extend") return false;
     if (filters.status !== "all" && payment.status !== filters.status) return false;
+    if (filters.service !== "all" && payment.service_type !== filters.service) return false;
     if (!q) return true;
-    const reservation = byId.get(payment.reservation_id);
     const hay = [
       payment.id,
       payment.tariff_code,
-      reservation?.public_id,
-      reservation?.email,
+      payment.reservation_public_id,
+      payment.reservation_email,
     ]
       .filter(Boolean)
       .join(" ")

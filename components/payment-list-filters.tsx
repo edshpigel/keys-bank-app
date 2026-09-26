@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import { FilterChip } from "@/components/ui/filter-chip";
+import { ServiceFilterChips } from "@/components/service-filter-chips";
 import type { PaymentFilters } from "@/lib/payments";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
@@ -12,12 +14,23 @@ const fieldClass =
 type Props = {
   value: PaymentFilters;
   onChange: (next: PaymentFilters) => void;
+  allowedServices?: Array<"keys" | "luggage">;
   className?: string;
 };
 
-export function PaymentListFilters({ value, onChange, className }: Props) {
+export function PaymentListFilters({ value, onChange, allowedServices, className }: Props) {
   const t = useT();
   const [query, setQuery] = useState(value.query);
+
+  const kindOptions = useMemo(
+    () =>
+      [
+        ["all", t("payments.kindAll")],
+        ["initial", t("payments.kindInitial")],
+        ["extend", t("payments.kindExtend")],
+      ] as const,
+    [t],
+  );
 
   const statusOptions = useMemo(
     () =>
@@ -31,39 +44,39 @@ export function PaymentListFilters({ value, onChange, className }: Props) {
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-brand-text-muted">{t("payments.kindFilter")}</span>
-          <select
-            className={fieldClass}
-            value={value.kind}
-            onChange={(e) =>
-              onChange({ ...value, kind: e.target.value as PaymentFilters["kind"] })
-            }
+      <ServiceFilterChips
+        value={value.service}
+        onChange={(service) => onChange({ ...value, service })}
+        allowedServices={allowedServices}
+      />
+
+      <div className="flex flex-wrap gap-1.5">
+        {kindOptions.map(([key, label]) => (
+          <FilterChip
+            key={key}
+            size="sm"
+            active={value.kind === key}
+            onClick={() => onChange({ ...value, kind: key })}
           >
-            <option value="all">{t("payments.kindAll")}</option>
-            <option value="initial">{t("payments.kindInitial")}</option>
-            <option value="extend">{t("payments.kindExtend")}</option>
-          </select>
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-brand-text-muted">{t("payments.statusFilter")}</span>
-          <select
-            className={fieldClass}
-            value={value.status}
-            onChange={(e) =>
-              onChange({ ...value, status: e.target.value as PaymentFilters["status"] })
-            }
-          >
-            {statusOptions.map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+            {label}
+          </FilterChip>
+        ))}
       </div>
-      <label className="block space-y-1.5">
+
+      <div className="flex flex-wrap gap-1.5">
+        {statusOptions.map(([key, label]) => (
+          <FilterChip
+            key={key}
+            size="sm"
+            active={value.status === key}
+            onClick={() => onChange({ ...value, status: key })}
+          >
+            {label}
+          </FilterChip>
+        ))}
+      </div>
+
+      <label className="block">
         <span className="sr-only">{t("common.search")}</span>
         <input
           type="search"

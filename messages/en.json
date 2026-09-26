@@ -12,7 +12,8 @@
     "soon": "Soon",
     "offlineBanner": "You're offline — the app is cached, live data needs a connection",
     "pullToRefresh": "Pull to refresh",
-    "refreshing": "Refreshing…"
+    "refreshing": "Refreshing…",
+    "accessDenied": "You don't have access to this section"
   },
   "nav": {
     "points": "Points",

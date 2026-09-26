@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { AppHeader } from "@/components/app-header";
+import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { ApiError, api, type PointListItem, type UnitReservationItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 
@@ -47,15 +47,23 @@ function UnitDetailInner() {
 
   const backHref = pointId ? `/point/${pointId}/safes/` : "/points/";
   const label = unit?.label || unitId.slice(0, 8);
+  const pointName = point?.name_short || t("pointHub.titleFallback");
 
   return (
     <>
-      <AppHeader
-        title={t("safes.unitTitle", { label })}
-        subtitle={point?.name_short}
+      <AppBreadcrumbs
+        items={[
+          { label: t("nav.points"), href: "/points/" },
+          ...(pointId
+            ? [
+                { label: pointName, href: `/point/${pointId}/` },
+                { label: t("safes.title"), href: `/point/${pointId}/safes/` },
+              ]
+            : []),
+          { label: t("safes.unitTitle", { label }) },
+        ]}
         backHref={backHref}
         backSide="end"
-        size="lg"
       />
       <div className="flex-1 space-y-4">
         {unit?.operational_status === "pending_empty" ? (
