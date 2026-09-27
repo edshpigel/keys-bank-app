@@ -1,11 +1,11 @@
 "use client";
 
 import { Button, Spinner, Switch } from "@heroui/react";
-import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { UnitReservationRow } from "@/components/unit-reservation-row";
 import { ApiError, api, type SafeGridItem, type UnitReservationItem } from "@/lib/api";
 import { idempotencyKey } from "@/lib/idempotency";
 import { useT } from "@/lib/i18n-provider";
@@ -220,21 +220,7 @@ export function SafeUnitSheet({
           <ul className="mt-3 space-y-2">
             {(unitOrders ?? []).map((row) => (
               <li key={row.id}>
-                <Link
-                  href={`/reservation/${row.id}/?point=${pointId}`}
-                  className="block rounded-[14px] border border-brand-border bg-brand-cream px-3.5 py-3 active:scale-[0.99]"
-                  onClick={onClose}
-                >
-                  <div className="font-semibold text-brand-text">#{row.public_id}</div>
-                  <div className="mt-0.5 text-sm capitalize text-brand-text-muted">
-                    {t(`lifecycle.${row.lifecycle}`)} · {t(`status.${row.status}`)}
-                  </div>
-                  {row.client_name || row.email ? (
-                    <div className="mt-0.5 truncate text-xs text-brand-text-muted">
-                      {row.client_name || row.email}
-                    </div>
-                  ) : null}
-                </Link>
+                <UnitReservationRow item={row} pointId={pointId} onNavigate={onClose} />
               </li>
             ))}
           </ul>

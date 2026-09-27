@@ -334,6 +334,8 @@ export type UnitReservationItem = {
   status: string;
   lifecycle: string;
   service_type: string;
+  starts_at?: string | null;
+  ends_at?: string | null;
   client_name?: string;
   email?: string;
 };

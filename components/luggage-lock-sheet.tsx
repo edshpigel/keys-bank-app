@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { UnitReservationRow } from "@/components/unit-reservation-row";
 import {
   ApiError,
   api,
@@ -85,6 +86,18 @@ export function LuggageLockSheet({
         .slice(0, 40),
     [lockActions, activeLock?.unit_id],
   );
+
+  const orderedOrders = useMemo(() => {
+    const rows = [...(unitOrders ?? [])];
+    const rank = (lifecycle: string) => {
+      if (lifecycle === "overstay") return 0;
+      if (lifecycle === "active") return 1;
+      if (lifecycle === "upcoming") return 2;
+      return 3;
+    };
+    rows.sort((a, b) => rank(a.lifecycle) - rank(b.lifecycle));
+    return rows;
+  }, [unitOrders]);
 
   const mutation = useMutation({
     mutationFn: async ({ action }: { action: "open" | "clear" }) => {
@@ -290,26 +303,18 @@ export function LuggageLockSheet({
 
           {mainTab === "orders" ? (
             <div className="mt-4 space-y-3">
-              {(unitOrders ?? []).length === 0 ? (
+              {orderedOrders.length === 0 ? (
                 <p className="py-4 text-center text-sm text-brand-text-muted">{t("luggage.ordersEmpty")}</p>
               ) : (
                 <ul className="space-y-2">
-                  {(unitOrders ?? []).map((row) => (
+                  {orderedOrders.map((row) => (
                     <li key={row.id}>
-                      <Link
-                        href={`/reservation/${row.id}/?point=${pointId}`}
-                        className="block rounded-[14px] border border-brand-border bg-brand-cream px-3.5 py-3 active:scale-[0.99]"
-                      >
-                        <div className="font-semibold text-brand-text">#{row.public_id}</div>
-                        <div className="mt-0.5 text-sm capitalize text-brand-text-muted">
-                          {t(`lifecycle.${row.lifecycle}`)} · {t(`status.${row.status}`)}
-                        </div>
-                        {row.client_name || row.email ? (
-                          <div className="mt-0.5 truncate text-xs text-brand-text-muted">
-                            {row.client_name || row.email}
-                          </div>
-                        ) : null}
-                      </Link>
+                      <UnitReservationRow
+                        item={row}
+                        pointId={pointId}
+                        timeZone={timeZone}
+                        onNavigate={onClose}
+                      />
                     </li>
                   ))}
                 </ul>
