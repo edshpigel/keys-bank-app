@@ -322,6 +322,7 @@ export type SafeGridItem = {
   unit_id: string;
   label: string;
   is_pmr: boolean;
+  is_active?: boolean;
   operational_status: string;
   busy: boolean;
   api_lock_state: string | null;

@@ -10,6 +10,7 @@ import { ApiError, api, type SafeGridItem, type UnitReservationItem } from "@/li
 import { idempotencyKey } from "@/lib/idempotency";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
+import { isSafeDisabled, safeStateLabel } from "@/lib/safes";
 
 type Props = {
   open: boolean;
@@ -19,17 +20,6 @@ type Props = {
   onActionDone: () => void;
   onSafeUpdated?: (next: SafeGridItem) => void;
 };
-
-function isSafeDisabled(item: SafeGridItem) {
-  return item.operational_status === "disabled";
-}
-
-function safeStatusLabel(item: SafeGridItem, t: (k: string) => string) {
-  if (isSafeDisabled(item)) return t("safes.disabled");
-  if (item.busy) return t("safes.busy");
-  if (item.operational_status === "pending_empty") return t("safes.pendingEmpty");
-  return t("safes.free");
-}
 
 export function SafeUnitSheet({
   open,
@@ -85,6 +75,7 @@ export function SafeUnitSheet({
         onSafeUpdated({
           ...active,
           is_pmr: data.is_pmr,
+          is_active: data.is_active,
           operational_status: data.operational_status,
         });
       }
@@ -126,9 +117,10 @@ export function SafeUnitSheet({
   const statusView: SafeGridItem = {
     ...active,
     is_pmr: editPmr,
+    is_active: !editDisabled,
     operational_status: editDisabled ? "disabled" : active.operational_status,
   };
-  const statusText = safeStatusLabel(statusView, t);
+  const statusText = safeStateLabel(statusView, t);
   const settingsBusy = settingsMutation.isPending || markEmpty.isPending;
 
   return (

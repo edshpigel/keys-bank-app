@@ -10,22 +10,7 @@ import { SafeUnitSheet } from "@/components/safe-unit-sheet";
 import { api, type PointListItem, type SafeGridItem } from "@/lib/api";
 import { useT } from "@/lib/i18n-provider";
 import { cn } from "@/lib/cn";
-
-function safeDotClass(item: SafeGridItem) {
-  if (item.operational_status === "disabled" || !item) {
-    return "bg-[#9a9a9a]";
-  }
-  if (item.busy) {
-    return "bg-[#e14343]";
-  }
-  return "bg-[#2fb45a]";
-}
-
-function safeAriaLabel(item: SafeGridItem, t: (k: string) => string) {
-  if (item.operational_status === "disabled") return t("safes.disabled");
-  if (item.busy) return t("safes.busy");
-  return t("safes.free");
-}
+import { isSafeDisabled, safeDotClass, safeStateLabel } from "@/lib/safes";
 
 export default function PointSafesPage() {
   const t = useT();
@@ -84,8 +69,8 @@ export default function PointSafesPage() {
           ) : (
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(52px,1fr))] gap-[7px]">
               {(data ?? []).map((item) => {
-                const status = safeAriaLabel(item, t);
-                const disabled = item.operational_status === "disabled";
+                const status = safeStateLabel(item, t);
+                const disabled = isSafeDisabled(item);
                 return (
                   <li key={item.unit_id}>
                     <button
