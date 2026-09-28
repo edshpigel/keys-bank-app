@@ -1,3 +1,4 @@
+import { redirectToLogout } from "@/lib/auth-client";
 import { getBffBase } from "@/lib/config";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, resolveLocale } from "@/lib/i18n";
 
@@ -124,7 +125,15 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     });
     if (refreshed.ok) {
       res = await rawFetch(path, options);
+    } else if (typeof window !== "undefined") {
+      // Stale cookies still pass middleware, but session is dead → force re-login.
+      redirectToLogout();
+      throw new ApiError(401, "unauthorized", "Session expired");
     }
+  }
+  if (res.status === 401 && typeof window !== "undefined" && !path.includes("auth/")) {
+    redirectToLogout();
+    throw new ApiError(401, "unauthorized", "Session expired");
   }
   return parseResponse<T>(res, "Request failed");
 }

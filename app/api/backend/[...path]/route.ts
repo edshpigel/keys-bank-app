@@ -9,17 +9,11 @@ import {
   ROLE_COOKIE,
   getUpstreamUrl,
 } from "@/lib/auth-constants";
+import { isAccessExpired } from "@/lib/jwt-exp";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
-async function ensureAccessToken(): Promise<string | null> {
-  const jar = await cookies();
-  const access = jar.get(ACCESS_COOKIE)?.value;
-  if (access) return access;
-
-  const refresh = jar.get(REFRESH_COOKIE)?.value;
-  if (!refresh) return null;
-
+async function rotateRefresh(refresh: string): Promise<string | null> {
   const upstream = await fetch(getUpstreamUrl("/v1/auth/refresh"), {
     method: "POST",
     headers: { "Content-Type": "application/json", "Accept-Language": "fr" },
@@ -33,6 +27,7 @@ async function ensureAccessToken(): Promise<string | null> {
   };
   if (!data.access_token || !data.refresh_token) return null;
 
+  const jar = await cookies();
   const secure = process.env.NODE_ENV === "production";
   jar.set(ACCESS_COOKIE, data.access_token, {
     httpOnly: true,
@@ -58,6 +53,16 @@ async function ensureAccessToken(): Promise<string | null> {
     });
   }
   return data.access_token;
+}
+
+async function ensureAccessToken(): Promise<string | null> {
+  const jar = await cookies();
+  const access = jar.get(ACCESS_COOKIE)?.value;
+  if (access && !isAccessExpired(access)) return access;
+
+  const refresh = jar.get(REFRESH_COOKIE)?.value;
+  if (!refresh) return null;
+  return rotateRefresh(refresh);
 }
 
 async function proxy(request: Request, context: RouteContext) {
