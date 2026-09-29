@@ -7,6 +7,7 @@ import {
   ROLE_COOKIE,
   getUpstreamUrl,
 } from "@/lib/auth-constants";
+import { getPublicOrigin } from "@/lib/config";
 
 function clearAuthCookies(response: NextResponse) {
   const secure = process.env.NODE_ENV === "production";
@@ -42,7 +43,7 @@ export async function POST() {
 /** Full-page logout: clear cookies then land on /login/. */
 export async function GET(request: Request) {
   await revokeRefreshToken();
-  const loginUrl = new URL("/login/", request.url);
+  const loginUrl = new URL("/login/", getPublicOrigin(request));
   const response = NextResponse.redirect(loginUrl);
   clearAuthCookies(response);
   return response;

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/auth-constants";
+import { getPublicOrigin } from "@/lib/config";
 
 const PUBLIC_PREFIXES = [
   "/login",
@@ -11,6 +12,12 @@ const PUBLIC_PREFIXES = [
   "/sw.js",
   "/offline.html",
 ];
+
+function redirectTo(request: NextRequest, pathname: string, search?: string) {
+  const url = new URL(pathname, getPublicOrigin(request));
+  if (search) url.search = search.startsWith("?") ? search : `?${search}`;
+  return NextResponse.redirect(url);
+}
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -35,17 +42,12 @@ export function middleware(request: NextRequest) {
     if (path.startsWith("/api/backend/")) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login/";
-    loginUrl.searchParams.set("next", path);
-    return NextResponse.redirect(loginUrl);
+    const next = encodeURIComponent(path);
+    return redirectTo(request, "/login/", `next=${next}`);
   }
 
   if ((path === "/login" || path === "/login/") && hasSession) {
-    const target = request.nextUrl.clone();
-    target.pathname = "/points/";
-    target.search = "";
-    return NextResponse.redirect(target);
+    return redirectTo(request, "/points/");
   }
 
   return NextResponse.next();

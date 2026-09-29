@@ -23,3 +23,26 @@ export function getAppUrl(): string {
     "http://localhost:3020"
   );
 }
+
+/**
+ * Public origin for redirects. Containers listen on HOSTNAME=0.0.0.0, so
+ * `new URL(..., request.url)` can produce Location: http://0.0.0.0/… —
+ * prefer forwarded host, then fall back to NEXT_PUBLIC_APP_URL.
+ */
+export function getPublicOrigin(request: Request): string {
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const hostHeader = request.headers.get("host")?.split(",")[0]?.trim();
+  const host = forwardedHost || hostHeader || "";
+  const bad =
+    !host ||
+    host.startsWith("0.0.0.0") ||
+    host.startsWith("127.0.0.1") ||
+    host.startsWith("[::]");
+  if (!bad) {
+    const proto =
+      request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      (process.env.NODE_ENV === "production" ? "https" : "http");
+    return `${proto}://${host}`;
+  }
+  return getAppUrl();
+}
