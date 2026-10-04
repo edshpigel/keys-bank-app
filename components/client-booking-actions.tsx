@@ -16,7 +16,9 @@ import { idempotencyKey } from "@/lib/idempotency";
 type ActionsFlags = {
   can_refresh_ttlock?: boolean;
   can_rebook?: boolean;
+  can_cancel_takeout?: boolean;
   can_cancel_auto_renew?: boolean;
+  can_enable_auto_renew?: boolean;
   can_retry_provisioning?: boolean;
 };
 
@@ -113,15 +115,22 @@ export function ClientBookingActions({
       run: () => mutation.mutate({ path: `reservations/${reservationId}/provisioning/retry` }),
     },
     {
-      key: "rebookLocker",
-      label: t("reservation.rebookLocker"),
-      show: Boolean(flags?.can_rebook),
+      key: "cancelTakeout",
+      label: t("reservation.cancelTakeout"),
+      show: Boolean(flags?.can_cancel_takeout ?? flags?.can_rebook),
       danger: false,
       run: () =>
         mutation.mutate({
-          path: `reservations/${reservationId}/rebook-locker`,
+          path: `reservations/${reservationId}/cancel-takeout`,
           idempotent: true,
         }),
+    },
+    {
+      key: "enableAutoRenew",
+      label: t("reservation.enableAutoRenew"),
+      show: Boolean(flags?.can_enable_auto_renew),
+      danger: false,
+      run: () => mutation.mutate({ path: `reservations/${reservationId}/auto-renew/enable` }),
     },
     {
       key: "cancelAutoRenew",

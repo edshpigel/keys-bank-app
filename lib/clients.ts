@@ -67,7 +67,9 @@ export type ClientDetailResponse = {
       actions?: {
         can_refresh_ttlock?: boolean;
         can_rebook?: boolean;
+        can_cancel_takeout?: boolean;
         can_cancel_auto_renew?: boolean;
+        can_enable_auto_renew?: boolean;
         can_retry_provisioning?: boolean;
       };
     }

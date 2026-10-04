@@ -31,7 +31,8 @@ function activityIcon(type: string) {
   if (type === "access.passcode_synced" || type === "operator.ttlock_refresh") return KeyRound;
   if (type === "access.lock_opened") return Unlock;
   if (type === "hardware.action") return Wrench;
-  if (type === "operator.cancel_auto_renew") return CheckCircle2;
+  if (type === "operator.cancel_auto_renew" || type === "operator.enable_auto_renew") return CheckCircle2;
+  if (type === "operator.cancel_takeout" || type === "operator.rebook") return CheckCircle2;
   if (type.startsWith("lifecycle.") || type.startsWith("operator.")) return CheckCircle2;
   return CreditCard;
 }
@@ -40,9 +41,30 @@ function activityIconTone(type: string) {
   if (type === "lifecycle.takeout") return "bg-[#E8F5EC] text-[#2D8A4E]";
   if (type === "access.lock_opened") return "bg-[#E8F0FA] text-[#3B6EA5]";
   if (type === "operator.cancel_auto_renew") return "bg-[#FCE8E6] text-[#B42318]";
+  if (type === "operator.enable_auto_renew" || type === "operator.cancel_takeout") {
+    return "bg-brand-cream text-brand-gold-dark";
+  }
   if (type.startsWith("operator.")) return "bg-brand-cream text-brand-gold-dark";
   if (type.startsWith("notify.")) return "bg-brand-cream text-brand-gold-dark";
   return "bg-brand-cream text-brand-gold-dark";
+}
+
+function actorLine(
+  item: ReservationActivityItem,
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  const role = String(item.actor_role || item.meta?.actor_role || "").trim().toLowerCase();
+  const email = String(item.actor_email || item.meta?.actor_email || "").trim();
+  if (role === "client" || (!role && item.type.startsWith("lifecycle."))) {
+    return t("reservation.actorClient");
+  }
+  if (role === "admin") {
+    return t("reservation.actorAdmin", { name: email || "—" });
+  }
+  if (role === "operator" || role === "partner" || email) {
+    return t("reservation.actorOperator", { name: email || "—" });
+  }
+  return "";
 }
 
 function ActivityRow({
@@ -85,6 +107,12 @@ function ActivityRow({
           {item.subtitle ? (
             <div className="text-[11px] text-brand-text-muted">{item.subtitle}</div>
           ) : null}
+          {(() => {
+            const actor = actorLine(item, t);
+            return actor ? (
+              <div className="mt-0.5 text-[11px] font-medium text-brand-gold-dark">{actor}</div>
+            ) : null;
+          })()}
           {item.at ? (
             <div className="mt-0.5 text-[10px] text-brand-text-muted">
               {formatDateTime(item.at, locale, timeZone)}

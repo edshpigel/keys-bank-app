@@ -81,6 +81,21 @@ function ActivityRow({ item }: { item: ClientActivityItem }) {
           {item.subtitle ? (
             <div className="text-[11px] text-brand-text-muted">{item.subtitle}</div>
           ) : null}
+          {(() => {
+            const role = String(item.actor_role || item.meta?.actor_role || "").trim().toLowerCase();
+            const email = String(item.actor_email || item.meta?.actor_email || "").trim();
+            let actor = "";
+            if (role === "client" || (!role && item.type.startsWith("lifecycle."))) {
+              actor = t("reservation.actorClient");
+            } else if (role === "admin") {
+              actor = t("reservation.actorAdmin", { name: email || "—" });
+            } else if (role === "operator" || role === "partner" || email) {
+              actor = t("reservation.actorOperator", { name: email || "—" });
+            }
+            return actor ? (
+              <div className="mt-0.5 text-[11px] font-medium text-brand-gold-dark">{actor}</div>
+            ) : null;
+          })()}
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[10px] text-brand-text-muted">
             {item.at ? <span>{formatDateTime(item.at, locale)}</span> : null}
             {item.public_id != null && item.reservation_id ? (

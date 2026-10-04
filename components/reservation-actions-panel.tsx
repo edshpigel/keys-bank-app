@@ -95,15 +95,22 @@ export function ReservationActionsPanel({ reservationId, detail, timeZone }: Pro
       run: () => mutation.mutate({ path: `reservations/${reservationId}/provisioning/retry` }),
     },
     {
-      key: "rebookLocker",
-      label: t("reservation.rebookLocker"),
+      key: "cancelTakeout",
+      label: t("reservation.cancelTakeout"),
       danger: false,
-      show: detail.actions.can_rebook,
+      show: Boolean(detail.actions.can_cancel_takeout ?? detail.actions.can_rebook),
       run: () =>
         mutation.mutate({
-          path: `reservations/${reservationId}/rebook-locker`,
+          path: `reservations/${reservationId}/cancel-takeout`,
           idempotent: true,
         }),
+    },
+    {
+      key: "enableAutoRenew",
+      label: t("reservation.enableAutoRenew"),
+      danger: false,
+      show: Boolean(detail.actions.can_enable_auto_renew),
+      run: () => mutation.mutate({ path: `reservations/${reservationId}/auto-renew/enable` }),
     },
     {
       key: "cancelAutoRenew",
