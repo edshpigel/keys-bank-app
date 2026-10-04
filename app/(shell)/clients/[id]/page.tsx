@@ -126,6 +126,18 @@ export default function ClientDetailPage() {
                             {formatDateShort(item.ends_at, locale)}{" "}
                             {formatTime(item.ends_at, locale)}
                           </div>
+                          {item.assigned_unit_labels && item.assigned_unit_labels.length > 0 ? (
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              {item.assigned_unit_labels.map((label) => (
+                                <span
+                                  key={label}
+                                  className="inline-flex rounded-md bg-brand-cream px-1.5 py-0.5 text-[11px] font-semibold text-brand-gold-dark"
+                                >
+                                  {label.startsWith("#") ? label : `#${label}`}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
                           {item.ttlock_passcode ? (
                             <div className="mt-1 text-[11px] text-brand-text">
                               TTLock: <span className="font-semibold">{item.ttlock_passcode}</span>
