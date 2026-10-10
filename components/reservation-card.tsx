@@ -87,7 +87,7 @@ export function ReservationCard({ item, pointId, timeZone }: Props) {
         <div className="shrink-0 text-right text-[15px] font-semibold text-brand-text">
           {(item.amount_ttc_cents ?? 0) > 0
             ? formatMoney(item.amount_ttc_cents, "EUR", locale)
-            : `#${item.public_id}`}
+            : "—"}
           <span className="ml-0.5 text-brand-text-muted">›</span>
         </div>
       </div>
